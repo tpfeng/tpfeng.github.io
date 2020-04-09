@@ -3,7 +3,7 @@
     <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>单机安装蓝鲸CMDB社区版 | tpfeng IT技术博客</title>
-<link rel="shortcut icon" href="https://tpfeng.github.io/favicon.ico?v=1586398320551">
+<link rel="shortcut icon" href="https://tpfeng.github.io/favicon.ico?v=1586403308318">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
 <link rel="stylesheet" href="https://tpfeng.github.io/styles/main.css">
 <link rel="alternate" type="application/atom+xml" title="单机安装蓝鲸CMDB社区版 | tpfeng IT技术博客 - Atom Feed" href="https://tpfeng.github.io/atom.xml">
@@ -25,7 +25,7 @@ sed -i 's/^SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
       <div class="main-content">
         <div class="site-header">
   <a href="https://tpfeng.github.io">
-  <img class="avatar" src="https://tpfeng.github.io/images/avatar.png?v=1586398320551" alt="">
+  <img class="avatar" src="https://tpfeng.github.io/images/avatar.png?v=1586403308318" alt="">
   </a>
   <h1 class="site-title">
     tpfeng IT技术博客
@@ -107,7 +107,11 @@ sed -i 's/^SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
 <h1 id="安装-rsync">安装 rsync</h1>
 <p>yum -y install rsync</p>
 <h1 id="调整-root-账号下的-max-open-files-值">调整 root 账号下的 max open files 值</h1>
-<p><code>cat &lt;&lt; EOF &gt;&gt; /etc/security/limits.conf root soft nofile 102400 root hard nofile 102400 EOF</code></p>
+<pre><code>`cat &lt;&lt; EOF &gt;&gt; /etc/security/limits.conf
+root soft nofile 102400
+root hard nofile 102400
+EOF`
+</code></pre>
 <p>下载蓝鲸bkce<br>
 cd /usr/local/src</p>
 <p>wget http://bkopen-1252002024.file.myqcloud.com/ce/ae1a51dfb4827622bd5e47f8cd385a17/bkce_src-5.1.27.tar.gz</p>
@@ -178,7 +182,7 @@ $ ./bk_install paas &amp;&amp; ./bk_install cmdb &amp;&amp; ./bk_install job</p>
         
 
         <div class="site-footer">
-  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">gridea</a>
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank"> gridea</a>
   <a class="rss" href="https://tpfeng.github.io/atom.xml" target="_blank">
     <i class="ri-rss-line"></i> RSS
   </a>
