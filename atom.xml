@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://tpfeng.github.io</id>
     <title>tpfeng IT技术博客</title>
-    <updated>2020-04-09T01:58:29.891Z</updated>
+    <updated>2020-04-09T02:02:09.730Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://tpfeng.github.io"/>
     <link rel="self" href="https://tpfeng.github.io/atom.xml"/>
@@ -10,6 +10,69 @@
     <logo>https://tpfeng.github.io/images/avatar.png</logo>
     <icon>https://tpfeng.github.io/favicon.ico</icon>
     <rights>All rights reserved 2020, tpfeng IT技术博客</rights>
+    <entry>
+        <title type="html"><![CDATA[单机安装蓝鲸CMDB社区版]]></title>
+        <id>https://tpfeng.github.io/post/dan-ji-an-zhuang-lan-jing-cmdb-she-qu-ban/</id>
+        <link href="https://tpfeng.github.io/post/dan-ji-an-zhuang-lan-jing-cmdb-she-qu-ban/">
+        </link>
+        <updated>2020-04-09T02:01:32.000Z</updated>
+        <content type="html"><![CDATA[<h1 id="通过命令临时禁用-selinux">通过命令临时禁用 SELinux</h1>
+<p>setenforce 0</p>
+<h1 id="或者修改配置文件">或者修改配置文件</h1>
+<p>sed -i 's/^SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config</p>
+<h1 id="检查默认防火墙状态如果返回-not-running可以跳过后面的命令">检查默认防火墙状态，如果返回 not running，可以跳过后面的命令</h1>
+<p>firewall-cmd --state</p>
+<p>systemctl stop firewalld    # 停止 firewalld<br>
+systemctl disable firewalld # 禁用 firewall 开机启动</p>
+<h1 id="安装-rsync">安装 rsync</h1>
+<p>yum -y install rsync</p>
+<h1 id="调整-root-账号下的-max-open-files-值">调整 root 账号下的 max open files 值</h1>
+<p>cat &lt;&lt; EOF &gt;&gt; /etc/security/limits.conf<br>
+root soft nofile 102400<br>
+root hard nofile 102400<br>
+EOF</p>
+<p>下载蓝鲸bkce<br>
+cd /usr/local/src</p>
+<p>wget http://bkopen-1252002024.file.myqcloud.com/ce/ae1a51dfb4827622bd5e47f8cd385a17/bkce_src-5.1.27.tar.gz</p>
+<p>tar zxvf bkce_src-5.1.27.tar.gz  -C /data<br>
+下载分包</p>
+<p>wget http://bkopen-1252002024.file.myqcloud.com/ce/422bc7ac/install_ce-1.6.24.168.tgz</p>
+<p>在蓝鲸SSL页面申请证书<br>
+https://bk.tencent.com/download_ssl/<br>
+解压MAC证书<br>
+tar xzvf ssl_certificates.tar.gz -C /data/src/cert<br>
+cp /data/install/install.config.3IP.sample /data/install/install.config<br>
+单机部署，修改主机为你服务器的外网IP</p>
+<p>[bkce-basic]<br>
+10.0.0.1 nginx,rabbitmq,kafka(config),zk(config),es,appt,fta,consul,bkdata(databus)<br>
+10.0.0.2 mongodb,appo,kafka(config),zk(config),es,mysql,consul,bkdata(dataapi),beanstalk<br>
+10.0.0.3 paas,cmdb,job,gse,license,kafka(config),zk(config),es,redis,influxdb,consul,bkdata(monitor)</p>
+<p>设置 /data/install/gloals.env文件的域名信息<br>
+export BK_DOMAIN=&quot;bk.com&quot;                # 蓝鲸根域名(不含主机名)<br>
+export PAAS_FQDN=&quot;paas.<span class='katex-error' title='ParseError: KaTeX parse error: Expected &#039;EOF&#039;, got &#039;#&#039; at position 18: …_DOMAIN&quot;       #̲ PAAS 完整域名
+expo…'>BK_DOMAIN&quot;       # PAAS 完整域名
+export CMDB_FQDN=&quot;cmdb.</span>BK_DOMAIN&quot;       # CMDB 完整域名<br>
+export JOB_FQDN=&quot;job.$BK_DOMAIN&quot;         # JOB 完整域名<br>
+配置 SSH 免密登陆<br>
+登录到中控机，执行以下操作：<br>
+cd /data/install<br>
+bash configure_ssh_without_pass</p>
+<p>运行以下脚本，来校验是否满足：<br>
+cd /data/install<br>
+bash precheck.sh</p>
+<p>若安装过程钟，提示<br>
+erlang rabbitmq-server需要安装<br>
+百度解决之。</p>
+<p>执行安装<br>
+如果部署全部组件，请执行：<br>
+$ cd /data/install<br>
+$ ./install_minibk -y<br>
+如果按需部署，假设只需要 PaaS，CMDB，JOB 平台，请执行：<br>
+$ cd /data/install<br>
+$ ./install_minibk<br>
+$ ./bk_install paas &amp;&amp; ./bk_install cmdb &amp;&amp; ./bk_install job</p>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[关于]]></title>
         <id>https://tpfeng.github.io/post/about/</id>
