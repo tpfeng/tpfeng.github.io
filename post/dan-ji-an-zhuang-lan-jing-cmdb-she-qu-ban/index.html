@@ -3,7 +3,7 @@
     <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>单机安装蓝鲸CMDB社区版 | tpfeng IT技术博客</title>
-<link rel="shortcut icon" href="https://tpfeng.github.io/favicon.ico?v=1586397773477">
+<link rel="shortcut icon" href="https://tpfeng.github.io/favicon.ico?v=1586397958914">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
 <link rel="stylesheet" href="https://tpfeng.github.io/styles/main.css">
 <link rel="alternate" type="application/atom+xml" title="单机安装蓝鲸CMDB社区版 | tpfeng IT技术博客 - Atom Feed" href="https://tpfeng.github.io/atom.xml">
@@ -16,7 +16,7 @@ setenforce 0
 或者修改配置文件
 sed -i 's/^SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
 检查默认防火墙状态，如果..." />
-    <meta name="keywords" content="" />
+    <meta name="keywords" content="系统部署" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
     <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
   </head>
@@ -25,7 +25,7 @@ sed -i 's/^SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
       <div class="main-content">
         <div class="site-header">
   <a href="https://tpfeng.github.io">
-  <img class="avatar" src="https://tpfeng.github.io/images/avatar.png?v=1586397773477" alt="">
+  <img class="avatar" src="https://tpfeng.github.io/images/avatar.png?v=1586397958914" alt="">
   </a>
   <h1 class="site-title">
     tpfeng IT技术博客
@@ -88,6 +88,10 @@ sed -i 's/^SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
                 3 min read
               </span>
               
+                <a href="https://tpfeng.github.io/tag/jlkztczl_/" class="post-tag">
+                  # 系统部署
+                </a>
+              
             </div>
             
             <div class="post-content-wrapper">
@@ -98,15 +102,12 @@ sed -i 's/^SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
 <p>sed -i 's/^SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config</p>
 <h1 id="检查默认防火墙状态如果返回-not-running可以跳过后面的命令">检查默认防火墙状态，如果返回 not running，可以跳过后面的命令</h1>
 <p>firewall-cmd --state</p>
-<p>systemctl stop firewalld    # 停止 firewalld<br>
-systemctl disable firewalld # 禁用 firewall 开机启动</p>
+<p><code>systemctl stop firewalld</code>   # 停止 firewalld<br>
+<code>systemctl disable firewalld</code># 禁用 firewall 开机启动</p>
 <h1 id="安装-rsync">安装 rsync</h1>
 <p>yum -y install rsync</p>
 <h1 id="调整-root-账号下的-max-open-files-值">调整 root 账号下的 max open files 值</h1>
-<p>cat &lt;&lt; EOF &gt;&gt; /etc/security/limits.conf<br>
-root soft nofile 102400<br>
-root hard nofile 102400<br>
-EOF</p>
+<p><code>cat &lt;&lt; EOF &gt;&gt; /etc/security/limits.conf root soft nofile 102400 root hard nofile 102400 EOF</code></p>
 <p>下载蓝鲸bkce<br>
 cd /usr/local/src</p>
 <p>wget http://bkopen-1252002024.file.myqcloud.com/ce/ae1a51dfb4827622bd5e47f8cd385a17/bkce_src-5.1.27.tar.gz</p>
