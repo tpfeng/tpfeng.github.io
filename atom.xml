@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://tpfeng.github.io</id>
     <title>tpfeng IT技术博客</title>
-    <updated>2020-04-09T06:19:43.355Z</updated>
+    <updated>2020-04-09T06:22:39.999Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://tpfeng.github.io"/>
     <link rel="self" href="https://tpfeng.github.io/atom.xml"/>
@@ -10,6 +10,17 @@
     <logo>https://tpfeng.github.io/images/avatar.png</logo>
     <icon>https://tpfeng.github.io/favicon.ico</icon>
     <rights>All rights reserved 2020, tpfeng IT技术博客</rights>
+    <entry>
+        <title type="html"><![CDATA[Debian 9+ / Ubuntu 18.04+ / Centos7+ V2ray+WS+TLS]]></title>
+        <id>https://tpfeng.github.io/post/debian-9-ubuntu-1804-centos7-v2raywstls/</id>
+        <link href="https://tpfeng.github.io/post/debian-9-ubuntu-1804-centos7-v2raywstls/">
+        </link>
+        <updated>2020-04-09T06:20:40.000Z</updated>
+        <content type="html"><![CDATA[<p>#Debian 9+ / Ubuntu 18.04+ / Centos7+</p>
+<p>##Vmess+websocket+TLS+Nginx+Website</p>
+<p><code>wget -N --no-check-certificate -q -O install.sh &quot;https:// raw.githubusercontent.com/wulabing/V2Ray_ws-tls_bash_onekey/master/ install.sh&quot; &amp;&amp; chmod +x install.sh &amp;&amp; bash install.sh</code></p>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[CentOS7安装Docker]]></title>
         <id>https://tpfeng.github.io/post/centos7-an-zhuang-docker/</id>
