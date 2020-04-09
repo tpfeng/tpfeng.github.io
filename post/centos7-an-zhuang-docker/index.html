@@ -2,17 +2,19 @@
   <head>
     <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>关于 | tpfeng IT技术博客</title>
+<title>CentOS7安装Docker | tpfeng IT技术博客</title>
 <link rel="shortcut icon" href="https://tpfeng.github.io/favicon.ico?v=1586398320551">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
 <link rel="stylesheet" href="https://tpfeng.github.io/styles/main.css">
-<link rel="alternate" type="application/atom+xml" title="关于 | tpfeng IT技术博客 - Atom Feed" href="https://tpfeng.github.io/atom.xml">
+<link rel="alternate" type="application/atom+xml" title="CentOS7安装Docker | tpfeng IT技术博客 - Atom Feed" href="https://tpfeng.github.io/atom.xml">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
 
 
 
-    <meta name="description" content="#一个IT菜鸟的技术成长历程记录博客#
-" />
+    <meta name="description" content="#安装一些必要的工具：
+yum install -y yum-utils device-mapper-persistent-data lvm2
+#添加Docker的存储库
+yum-config-manager --add-repo http..." />
     <meta name="keywords" content="" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
     <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
@@ -75,7 +77,7 @@
         <div class="post-detail">
           <article class="post">
             <h2 class="post-title">
-              关于
+              CentOS7安装Docker
             </h2>
             <div class="post-info">
               <span>
@@ -89,7 +91,16 @@
             
             <div class="post-content-wrapper">
               <div class="post-content">
-                <p>#一个IT菜鸟的技术成长历程记录博客#</p>
+                <p>#安装一些必要的工具：<br>
+<code>yum install -y yum-utils device-mapper-persistent-data lvm2</code></p>
+<p>#添加Docker的存储库<br>
+<code>yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo</code></p>
+<p>#安装Docker-ce<br>
+<code>yum install -y docker-ce</code></p>
+<p>#启动Docker<br>
+<code>systemctl start docker</code></p>
+<p>#测试运行 hello-world<br>
+<code>docker run hello-world</code></p>
 
               </div>
               <div class="toc-container">
@@ -99,6 +110,15 @@
           </article>
         </div>
 
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://tpfeng.github.io/post/dan-ji-an-zhuang-lan-jing-cmdb-she-qu-ban/">
+              <h3 class="post-title">
+                单机安装蓝鲸CMDB社区版
+              </h3>
+            </a>
+          </div>
         
 
         
