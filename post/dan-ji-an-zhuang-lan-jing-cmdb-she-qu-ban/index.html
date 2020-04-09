@@ -1,92 +1,98 @@
-
-<!DOCTYPE html>
 <html>
   <head>
-    
-<meta charset="utf-8" >
-
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>单机安装蓝鲸CMDB社区版 | tpfeng IT技术博客</title>
-<meta name="description" content="一个IT技术菜鸟的成长历程">
-
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.7.0/animate.min.css">
-
-<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
-<link rel="shortcut icon" href="https://tpfeng.github.io/favicon.ico?v=1586397723404">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="shortcut icon" href="https://tpfeng.github.io/favicon.ico?v=1586397773477">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
 <link rel="stylesheet" href="https://tpfeng.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="单机安装蓝鲸CMDB社区版 | tpfeng IT技术博客 - Atom Feed" href="https://tpfeng.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
 
 
 
-<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
-<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
-
-
-
+    <meta name="description" content="通过命令临时禁用 SELinux
+setenforce 0
+或者修改配置文件
+sed -i 's/^SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
+检查默认防火墙状态，如果..." />
+    <meta name="keywords" content="" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
   </head>
   <body>
-    <div id="app" class="main">
-      <div class="site-header-container">
-  <div class="site-header">
-    <div class="left">
-      <a href="https://tpfeng.github.io">
-        <img class="avatar" src="https://tpfeng.github.io/images/avatar.png?v=1586397723404" alt="" width="32px" height="32px">
-      </a>
-      <a href="https://tpfeng.github.io">
-        <h1 class="site-title">tpfeng IT技术博客</h1>
-      </a>
-    </div>
-    <div class="right">
-      <transition name="fade">
-        <i class="icon" :class="{ 'icon-close-outline': menuVisible, 'icon-menu-outline': !menuVisible }" @click="menuVisible = !menuVisible"></i>
-      </transition>
-    </div>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://tpfeng.github.io">
+  <img class="avatar" src="https://tpfeng.github.io/images/avatar.png?v=1586397773477" alt="">
+  </a>
+  <h1 class="site-title">
+    tpfeng IT技术博客
+  </h1>
+  <p class="site-description">
+    一个IT技术菜鸟的成长历程
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
   </div>
 </div>
 
-<transition name="fade">
-  <div class="menu-container" style="display: none;" v-show="menuVisible">
-    <div class="menu-list">
-      
-        
-          <a href="/" class="menu purple-link">
-            首页
-          </a>
-        
-      
-        
-          <a href="/archives" class="menu purple-link">
-            归档
-          </a>
-        
-      
-        
-          <a href="/tags" class="menu purple-link">
-            标签
-          </a>
-        
-      
-        
-          <a href="/post/about" class="menu purple-link">
-            关于
-          </a>
-        
-      
-    </div>
-  </div>
-</transition>
-
-
-      <div class="content-container">
         <div class="post-detail">
-          
-          <h2 class="post-title">单机安装蓝鲸CMDB社区版</h2>
-          <div class="post-info post-detail-info">
-            <span><i class="icon-calendar-outline"></i> 2020-04-09</span>
+          <article class="post">
+            <h2 class="post-title">
+              单机安装蓝鲸CMDB社区版
+            </h2>
+            <div class="post-info">
+              <span>
+                2020-04-09
+              </span>
+              <span>
+                3 min read
+              </span>
+              
+            </div>
             
-          </div>
-          <div class="post-content">
-            <h1 id="通过命令临时禁用-selinux">通过命令临时禁用 SELinux</h1>
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <h1 id="通过命令临时禁用-selinux">通过命令临时禁用 SELinux</h1>
 <p>setenforce 0</p>
 <h1 id="或者修改配置文件">或者修改配置文件</h1>
 <p>sed -i 's/^SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config</p>
@@ -142,57 +148,83 @@ $ cd /data/install<br>
 $ ./install_minibk<br>
 $ ./bk_install paas &amp;&amp; ./bk_install cmdb &amp;&amp; ./bk_install job</p>
 
-          </div>
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#%E9%80%9A%E8%BF%87%E5%91%BD%E4%BB%A4%E4%B8%B4%E6%97%B6%E7%A6%81%E7%94%A8-selinux">通过命令临时禁用 SELinux</a></li>
+<li><a href="#%E6%88%96%E8%80%85%E4%BF%AE%E6%94%B9%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6">或者修改配置文件</a></li>
+<li><a href="#%E6%A3%80%E6%9F%A5%E9%BB%98%E8%AE%A4%E9%98%B2%E7%81%AB%E5%A2%99%E7%8A%B6%E6%80%81%E5%A6%82%E6%9E%9C%E8%BF%94%E5%9B%9E-not-running%E5%8F%AF%E4%BB%A5%E8%B7%B3%E8%BF%87%E5%90%8E%E9%9D%A2%E7%9A%84%E5%91%BD%E4%BB%A4">检查默认防火墙状态，如果返回 not running，可以跳过后面的命令</a></li>
+<li><a href="#%E5%AE%89%E8%A3%85-rsync">安装 rsync</a></li>
+<li><a href="#%E8%B0%83%E6%95%B4-root-%E8%B4%A6%E5%8F%B7%E4%B8%8B%E7%9A%84-max-open-files-%E5%80%BC">调整 root 账号下的 max open files 值</a></li>
+</ul>
+
+              </div>
+            </div>
+          </article>
         </div>
 
         
           <div class="next-post">
-            <a class="purple-link" href="https://tpfeng.github.io/post/about/">
+            <div class="next">下一篇</div>
+            <a href="https://tpfeng.github.io/post/about/">
               <h3 class="post-title">
-                下一篇：关于
+                关于
               </h3>
             </a>
           </div>
-          
-      </div>
+        
 
-      
+        
 
-      <div class="site-footer">
-  <div class="slogan">一个IT技术菜鸟的成长历程</div>
-  <div class="social-container">
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-  </div>
-  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">gridea</a> | <a class="rss" href="https://tpfeng.github.io/atom.xml" target="_blank">RSS</a>
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">gridea</a>
+  <a class="rss" href="https://tpfeng.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
 </div>
 
-
+      </div>
     </div>
-    <script type="application/javascript">
 
-hljs.initHighlightingOnLoad()
+    <script>
+      hljs.initHighlightingOnLoad()
 
-var app = new Vue({
-  el: '#app',
-  data: {
-    menuVisible: false,
-  },
-})
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
 
-</script>
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
 
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
 
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
 
-
+    </script>
   </body>
 </html>
