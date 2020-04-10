@@ -3,7 +3,7 @@
     <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>普通用户SSH免密码互信登录 | tpfeng IT技术博客</title>
-<link rel="shortcut icon" href="https://tpfeng.github.io/favicon.ico?v=1586501273106">
+<link rel="shortcut icon" href="https://tpfeng.github.io/favicon.ico?v=1586510667327">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
 <link rel="stylesheet" href="https://tpfeng.github.io/styles/main.css">
 <link rel="alternate" type="application/atom+xml" title="普通用户SSH免密码互信登录 | tpfeng IT技术博客 - Atom Feed" href="https://tpfeng.github.io/atom.xml">
@@ -24,7 +24,7 @@ PubkeyAuthenticati..." />
       <div class="main-content">
         <div class="site-header">
   <a href="https://tpfeng.github.io">
-  <img class="avatar" src="https://tpfeng.github.io/images/avatar.png?v=1586501273106" alt="">
+  <img class="avatar" src="https://tpfeng.github.io/images/avatar.png?v=1586510667327" alt="">
   </a>
   <h1 class="site-title">
     tpfeng IT技术博客
@@ -84,7 +84,7 @@ PubkeyAuthenticati..." />
                 2020-04-10
               </span>
               <span>
-                1 min read
+                2 min read
               </span>
               
             </div>
@@ -100,15 +100,12 @@ PubkeyAuthenticati..." />
 chmod 777 -R ~/.ssh<br>
 生成没密码的密钥**#不要加sudo**<br>
 -t 指定类型，-f指定文件生成路径，-P指定文件密码（''表示无密码）<br>
-<code>$ ssh-keygen -t rsa -f ~/.ssh/id_rsa -P ''</code></p>
+<code>$ ssh-keygen -t rsa -f ~/.ssh/id_rsa -P ''#默认存放在/home/user/.ssh目录下面</code></p>
+<p><code>ssh ops@192.168.1.213 -p 18999 mkdir -p .ssh #远程新建目录</code></p>
+<p><code>cat .ssh/id_rsa.pub | ssh ops@192.168.1.213 -p 18999 'cat &gt;&gt; .ssh/authorized_keys'#把本机的公钥写入远程主机的授权文件</code></p>
+<p><code>ssh ops@192.168.1.213 -p 18999 &quot;chmod 700 .ssh;chmod 640 .ssh/authorized_keys&quot;设置远程主机的权限</code></p>
 <p>##Server B（user,IP:192.168.1.213）<br>
 配置同Server A</p>
-<p>##Server A<br>
-把生成的公钥传输到Server B<br>
-<code>ssh-copy-id -p 22 -i .ssh/id_rsa.pub user@192.168.1.213 # -p端口号参数要放在前面</code><br>
-##Server B<br>
-把生成的公钥传输到Server B<br>
-<code>ssh-copy-id -p 22 -i .ssh/id_rsa.pub user@192.168.1.212 # -p端口号参数要放在前面</code></p>
 <p>#ServerA上测试<br>
 <code>ssh user@192.168.1.213 -p 22</code></p>
 
