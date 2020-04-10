@@ -2,17 +2,19 @@
   <head>
     <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>关于 | tpfeng IT技术博客</title>
+<title>普通用户SSH免密码互信登录 | tpfeng IT技术博客</title>
 <link rel="shortcut icon" href="https://tpfeng.github.io/favicon.ico?v=1586501050428">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
 <link rel="stylesheet" href="https://tpfeng.github.io/styles/main.css">
-<link rel="alternate" type="application/atom+xml" title="关于 | tpfeng IT技术博客 - Atom Feed" href="https://tpfeng.github.io/atom.xml">
+<link rel="alternate" type="application/atom+xml" title="普通用户SSH免密码互信登录 | tpfeng IT技术博客 - Atom Feed" href="https://tpfeng.github.io/atom.xml">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
 
 
 
-    <meta name="description" content="#一个IT菜鸟的技术成长历程记录博客#
-" />
+    <meta name="description" content="##Server A （user,IP:192.168.1.212）
+把/etc/ssh/sshd_config文件修改启用RSA认证
+RSAAuthentication yes # 启用 RSA 认证
+PubkeyAuthenticati..." />
     <meta name="keywords" content="" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
     <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
@@ -75,11 +77,11 @@
         <div class="post-detail">
           <article class="post">
             <h2 class="post-title">
-              关于
+              普通用户SSH免密码互信登录
             </h2>
             <div class="post-info">
               <span>
-                2020-04-09
+                2020-04-10
               </span>
               <span>
                 1 min read
@@ -89,7 +91,26 @@
             
             <div class="post-content-wrapper">
               <div class="post-content">
-                <p>#一个IT菜鸟的技术成长历程记录博客#</p>
+                <p>##Server A （user,IP:192.168.1.212）<br>
+把/etc/ssh/sshd_config文件修改启用RSA认证<br>
+RSAAuthentication yes # 启用 RSA 认证<br>
+PubkeyAuthentication yes # 启用公钥私钥配对认证方式<br>
+AuthorizedKeysFile %h/.ssh/authorized_keys # 公钥文件路径<br>
+把.ssh的权限给普通用户写入。<br>
+chmod 777 -R ~/.ssh<br>
+生成没密码的密钥**#不要加sudo**<br>
+-t 指定类型，-f指定文件生成路径，-P指定文件密码（''表示无密码）<br>
+$ ssh-keygen -t rsa -f ~/.ssh/id_rsa -P ''</p>
+<p>##Server B（user,IP:192.168.1.213）<br>
+配置同Server A</p>
+<p>##Server A<br>
+把生成的公钥传输到Server B<br>
+ssh-copy-id -p 22 -i .ssh/id_rsa.pub user@192.168.1.213 # -p端口号参数要放在前面<br>
+##Server B<br>
+把生成的公钥传输到Server B<br>
+ssh-copy-id -p 22 -i .ssh/id_rsa.pub user@192.168.1.212 # -p端口号参数要放在前面</p>
+<p>#ServerA上测试<br>
+ssh user@192.168.1.213 -p 22</p>
 
               </div>
               <div class="toc-container">
@@ -99,6 +120,15 @@
           </article>
         </div>
 
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://tpfeng.github.io/post/centos7debian9ubuntu16-trojan/">
+              <h3 class="post-title">
+                centos7+/debian9+/ubuntu16+ Trojan
+              </h3>
+            </a>
+          </div>
         
 
         
