@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://tpfeng.github.io</id>
     <title>tpfeng IT技术博客</title>
-    <updated>2020-04-10T11:32:38.812Z</updated>
+    <updated>2020-04-14T01:39:34.964Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://tpfeng.github.io"/>
     <link rel="self" href="https://tpfeng.github.io/atom.xml"/>
@@ -10,6 +10,50 @@
     <logo>https://tpfeng.github.io/images/avatar.png</logo>
     <icon>https://tpfeng.github.io/favicon.ico</icon>
     <rights>All rights reserved 2020, tpfeng IT技术博客</rights>
+    <entry>
+        <title type="html"><![CDATA[CentOS7 安装Zabbix]]></title>
+        <id>https://tpfeng.github.io/post/centos7-an-zhuang-zabbix/</id>
+        <link href="https://tpfeng.github.io/post/centos7-an-zhuang-zabbix/">
+        </link>
+        <updated>2020-04-14T01:37:03.000Z</updated>
+        <content type="html"><![CDATA[<p>1、	安装Mysql 5.6<br>
+由于centos 7默认数据库改为了Mariadb<br>
+添加官方安装源<br>
+cd /usr/local/src<br>
+wget http://repo.mysql.com/mysql-community-release-el7-5.noarch.rpm<br>
+rpm –ivh mysql-community-release-el7-5.noarch.rpm</p>
+<p>安装完mysql源后，yum安装mysql即可。<br>
+yum –y install mysql mysql-server mysql-devel<br>
+安装完毕，把mysql的所有者改为root<br>
+chown root:root /var/lib/mysql<br>
+systemctl restart mysqld #重启mysqld服务</p>
+<pre><code>mysql –uroot #进入mysql配置模式
+use user;
+update user set password=password(”123456”) where user=’root’; #更改root的密码
+</code></pre>
+<p>2、	安装apche和php<br>
+yum -y install httpd php php-mysql php-common php-mbstring php-gd php-odbc php-pear curl curl-devel net-snmp net-snmp-devel perl-DBI php-bcmath gcc numactl-libs<br>
+3、	安装zabbix<br>
+添加用户和组：<br>
+groupadd zabbix #创建用户组zabbix<br>
+useradd zabbix -g zabbix -s /bin/false #创建用户zabbix，并且把用户zabbix加入到用户组zabbix中</p>
+<p>下载Zabbix 3.2<br>
+Cd /usr/local/src<br>
+Wget https://nchc.dl.sourceforge.net/project/zabbix/ZABBIX%20Latest%20Stable/3.2.6/zabbix-3.2.6.tar.gz<br>
+解压zabbix<br>
+tar –zxvf zabbix-3.2.6.tar.gz  #解压zabbix-3.2.6.tar.gz到本目录<br>
+创建数据库<br>
+mysql -u root -p #输入密码，进入MySQL控制台<br>
+create database zabbix character set utf8; #创建数据库zabbix，并且数据库编码使用utf8<br>
+GRANT USAGE ON <em>.</em> TO 'zabbix'@'localhost' IDENTIFIED BY '1qaz@3edc ' WITH GRANT OPTION;#新建账户zabbix，密码1qaz@3edc，并且授权使用zabbix这个数据库。<br>
+flush privileges; #再次刷新系统授权表<br>
+use zabbix #进入数据库<br>
+source /usr/local/src/zabbix-3.2.6/database/mysql/schema.sql #导入脚本文件到zabbix数据库<br>
+source /usr/local/src/zabbix-3.2.6/database/mysql/images.sql #导入脚本文件到zabbix数据库<br>
+source /usr/local/src/zabbix-3.2.6/database/mysql/data.sql #导入脚本文件到zabbix数据库<br>
+quit; 退出数据库</p>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[普通用户SSH免密码互信登录]]></title>
         <id>https://tpfeng.github.io/post/pu-tong-yong-hu-ssh-mian-mi-ma-hu-xin-deng-lu/</id>

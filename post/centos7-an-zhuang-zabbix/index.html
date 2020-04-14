@@ -2,19 +2,21 @@
   <head>
     <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Debian 9+ / Ubuntu 18.04+ / Centos7+ V2ray+WS+TLS | tpfeng IT技术博客</title>
+<title>CentOS7 安装Zabbix | tpfeng IT技术博客</title>
 <link rel="shortcut icon" href="https://tpfeng.github.io/favicon.ico?v=1586828370098">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
 <link rel="stylesheet" href="https://tpfeng.github.io/styles/main.css">
-<link rel="alternate" type="application/atom+xml" title="Debian 9+ / Ubuntu 18.04+ / Centos7+ V2ray+WS+TLS | tpfeng IT技术博客 - Atom Feed" href="https://tpfeng.github.io/atom.xml">
+<link rel="alternate" type="application/atom+xml" title="CentOS7 安装Zabbix | tpfeng IT技术博客 - Atom Feed" href="https://tpfeng.github.io/atom.xml">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
 
 
 
-    <meta name="description" content="#Debian 9+ / Ubuntu 18.04+ / Centos7+
-##Vmess+websocket+TLS+Nginx+Website
-wget -N --no-check-certificate -q -O install.s..." />
-    <meta name="keywords" content="综合技术" />
+    <meta name="description" content="1、	安装Mysql 5.6
+由于centos 7默认数据库改为了Mariadb
+添加官方安装源
+cd /usr/local/src
+wget http://repo.mysql.com/mysql-community-release-el..." />
+    <meta name="keywords" content="" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
     <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
   </head>
@@ -76,27 +78,56 @@ wget -N --no-check-certificate -q -O install.s..." />
         <div class="post-detail">
           <article class="post">
             <h2 class="post-title">
-              Debian 9+ / Ubuntu 18.04+ / Centos7+ V2ray+WS+TLS
+              CentOS7 安装Zabbix
             </h2>
             <div class="post-info">
               <span>
-                2020-04-09
+                2020-04-14
               </span>
               <span>
-                1 min read
+                3 min read
               </span>
-              
-                <a href="https://tpfeng.github.io/tag/8iaLeXCFd/" class="post-tag">
-                  # 综合技术
-                </a>
               
             </div>
             
             <div class="post-content-wrapper">
               <div class="post-content">
-                <p>#Debian 9+ / Ubuntu 18.04+ / Centos7+</p>
-<p>##Vmess+websocket+TLS+Nginx+Website</p>
-<p><code>wget -N --no-check-certificate -q -O install.sh &quot;https:// raw.githubusercontent.com/wulabing/V2Ray_ws-tls_bash_onekey/master/ install.sh&quot; &amp;&amp; chmod +x install.sh &amp;&amp; bash install.sh</code></p>
+                <p>1、	安装Mysql 5.6<br>
+由于centos 7默认数据库改为了Mariadb<br>
+添加官方安装源<br>
+cd /usr/local/src<br>
+wget http://repo.mysql.com/mysql-community-release-el7-5.noarch.rpm<br>
+rpm –ivh mysql-community-release-el7-5.noarch.rpm</p>
+<p>安装完mysql源后，yum安装mysql即可。<br>
+yum –y install mysql mysql-server mysql-devel<br>
+安装完毕，把mysql的所有者改为root<br>
+chown root:root /var/lib/mysql<br>
+systemctl restart mysqld #重启mysqld服务</p>
+<pre><code>mysql –uroot #进入mysql配置模式
+use user;
+update user set password=password(”123456”) where user=’root’; #更改root的密码
+</code></pre>
+<p>2、	安装apche和php<br>
+yum -y install httpd php php-mysql php-common php-mbstring php-gd php-odbc php-pear curl curl-devel net-snmp net-snmp-devel perl-DBI php-bcmath gcc numactl-libs<br>
+3、	安装zabbix<br>
+添加用户和组：<br>
+groupadd zabbix #创建用户组zabbix<br>
+useradd zabbix -g zabbix -s /bin/false #创建用户zabbix，并且把用户zabbix加入到用户组zabbix中</p>
+<p>下载Zabbix 3.2<br>
+Cd /usr/local/src<br>
+Wget https://nchc.dl.sourceforge.net/project/zabbix/ZABBIX%20Latest%20Stable/3.2.6/zabbix-3.2.6.tar.gz<br>
+解压zabbix<br>
+tar –zxvf zabbix-3.2.6.tar.gz  #解压zabbix-3.2.6.tar.gz到本目录<br>
+创建数据库<br>
+mysql -u root -p #输入密码，进入MySQL控制台<br>
+create database zabbix character set utf8; #创建数据库zabbix，并且数据库编码使用utf8<br>
+GRANT USAGE ON <em>.</em> TO 'zabbix'@'localhost' IDENTIFIED BY '1qaz@3edc ' WITH GRANT OPTION;#新建账户zabbix，密码1qaz@3edc，并且授权使用zabbix这个数据库。<br>
+flush privileges; #再次刷新系统授权表<br>
+use zabbix #进入数据库<br>
+source /usr/local/src/zabbix-3.2.6/database/mysql/schema.sql #导入脚本文件到zabbix数据库<br>
+source /usr/local/src/zabbix-3.2.6/database/mysql/images.sql #导入脚本文件到zabbix数据库<br>
+source /usr/local/src/zabbix-3.2.6/database/mysql/data.sql #导入脚本文件到zabbix数据库<br>
+quit; 退出数据库</p>
 
               </div>
               <div class="toc-container">
@@ -109,9 +140,9 @@ wget -N --no-check-certificate -q -O install.s..." />
         
           <div class="next-post">
             <div class="next">下一篇</div>
-            <a href="https://tpfeng.github.io/post/centos7-an-zhuang-docker/">
+            <a href="https://tpfeng.github.io/post/pu-tong-yong-hu-ssh-mian-mi-ma-hu-xin-deng-lu/">
               <h3 class="post-title">
-                CentOS7安装Docker
+                普通用户SSH免密码互信登录
               </h3>
             </a>
           </div>
