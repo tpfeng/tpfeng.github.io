@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://tpfeng.github.io</id>
     <title>tpfeng IT技术博客</title>
-    <updated>2020-04-15T09:31:10.726Z</updated>
+    <updated>2020-04-15T09:32:01.835Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://tpfeng.github.io"/>
     <link rel="self" href="https://tpfeng.github.io/atom.xml"/>
@@ -49,7 +49,7 @@ w</p>
 <p>还要设置开机自动挂载<br>
 先要查询分区的uuid是多少 blkid /dev/sdb1</p>
 <pre><code>[ops@localhost ~]$ sudo blkid /dev/sdb1 
-/dev/vda1: UUID=&quot;ab82b44c-bc1a-49bb-b3b8-a3ee1589bbc12&quot; TYPE=&quot;ext4&quot;
+/dev/sdb1: UUID=&quot;ab82b44c-bc1a-49bb-b3b8-a3ee1589bbc12&quot; TYPE=&quot;ext4&quot;
 </code></pre>
 <p>编辑/etc/fstab 在最后加上一行<br>
 #<br>
