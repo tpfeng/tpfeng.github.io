@@ -2,20 +2,21 @@
   <head>
     <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>CentOS7安装Docker | tpfeng IT技术博客</title>
+<title>CentOS 增加硬盘自动挂载配置 | tpfeng IT技术博客</title>
 <link rel="shortcut icon" href="https://tpfeng.github.io/favicon.ico?v=1586942990809">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
 <link rel="stylesheet" href="https://tpfeng.github.io/styles/main.css">
-<link rel="alternate" type="application/atom+xml" title="CentOS7安装Docker | tpfeng IT技术博客 - Atom Feed" href="https://tpfeng.github.io/atom.xml">
+<link rel="alternate" type="application/atom+xml" title="CentOS 增加硬盘自动挂载配置 | tpfeng IT技术博客 - Atom Feed" href="https://tpfeng.github.io/atom.xml">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
 
 
 
-    <meta name="description" content="#安装一些必要的工具：
-yum install -y yum-utils device-mapper-persistent-data lvm2
-#添加Docker的存储库
-yum-config-manager --add-repo http..." />
-    <meta name="keywords" content="系统部署" />
+    <meta name="description" content="###开机后查看新增加的硬盘，一般看容量可以知道，假设是/dev/sdb
+fdisk -l
+初始化和格式化硬盘
+[ops@localhost ~]$ fdisk /dev/sdb 
+fdisk: cannot open /dev/vda: ..." />
+    <meta name="keywords" content="" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
     <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
   </head>
@@ -77,34 +78,70 @@ yum-config-manager --add-repo http..." />
         <div class="post-detail">
           <article class="post">
             <h2 class="post-title">
-              CentOS7安装Docker
+              CentOS 增加硬盘自动挂载配置
             </h2>
             <div class="post-info">
               <span>
-                2020-04-09
+                2020-04-15
               </span>
               <span>
-                1 min read
+                2 min read
               </span>
-              
-                <a href="https://tpfeng.github.io/tag/jlkztczl_/" class="post-tag">
-                  # 系统部署
-                </a>
               
             </div>
             
             <div class="post-content-wrapper">
               <div class="post-content">
-                <p>#安装一些必要的工具：<br>
-<code>yum install -y yum-utils device-mapper-persistent-data lvm2</code></p>
-<p>#添加Docker的存储库<br>
-<code>yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo</code></p>
-<p>#安装Docker-ce<br>
-<code>yum install -y docker-ce</code></p>
-<p>#启动Docker<br>
-<code>systemctl start docker</code></p>
-<p>#测试运行 hello-world<br>
-<code>docker run hello-world</code></p>
+                <p>###开机后查看新增加的硬盘，一般看容量可以知道，假设是/dev/sdb<br>
+fdisk -l</p>
+<p>初始化和格式化硬盘</p>
+<pre><code>[ops@localhost ~]$ fdisk /dev/sdb 
+fdisk: cannot open /dev/vda: Permission denied
+[ops@qingshaoyun ~]$ sudo fdisk /dev/sdb
+Welcome to fdisk (util-linux 2.23.2).
+
+Changes will remain in memory only, until you decide to write them.
+Be careful before using the write command.
+
+
+Command (m for help): n
+Partition type:
+   p   primary (1 primary, 0 extended, 3 free)
+   e   extended
+Select (default p): p
+Partition number (1-4, default 1): 1
+</code></pre>
+<p>然后选择默认的开始块和结束块</p>
+<p>###最后记得要输入w保存<br>
+w</p>
+<p>格式化分区</p>
+<p><code>mkfs -t ext4 /dev/sdb1</code></p>
+<p>新建一个挂载目录</p>
+<pre><code>mkdir /data
+</code></pre>
+<p>挂载分区到目录</p>
+<pre><code>mount -t ext4 /dev/sdb1 /data
+</code></pre>
+<p>还要设置开机自动挂载<br>
+先要查询分区的uuid是多少 blkid /dev/sdb1</p>
+<pre><code>[ops@localhost ~]$ sudo blkid /dev/sdb1 
+/dev/vda1: UUID=&quot;ab82b44c-bc1a-49bb-b3b8-a3ee1589bbc12&quot; TYPE=&quot;ext4&quot;
+</code></pre>
+<p>编辑/etc/fstab 在最后加上一行<br>
+#<br>
+# /etc/fstab<br>
+# Created by anaconda on Thu Mar 21 07:01:01 2019<br>
+#<br>
+# Accessible filesystems, by reference, are maintained under '/dev/disk'<br>
+# See man pages fstab(5), findfs(8), mount(8) and/or blkid(8) for more info<br>
+#<br>
+UUID=84953f78-f1ba-4dbd-ac60-aaabc2e4cb9c /   ext4  defaul<br>
+ts1 1<br>
+/www/swapswapswapdefaults0 0</p>
+<pre><code>UUID=ab82b44c-bc1a-49bb-b3b8-a3ee1589bbc12 /data ext4 defaults 0 0
+
+保存退出
+</code></pre>
 
               </div>
               <div class="toc-container">
@@ -117,9 +154,9 @@ yum-config-manager --add-repo http..." />
         
           <div class="next-post">
             <div class="next">下一篇</div>
-            <a href="https://tpfeng.github.io/post/dan-ji-an-zhuang-lan-jing-cmdb-she-qu-ban/">
+            <a href="https://tpfeng.github.io/post/centos-7-firewalld-xian-zhi-ssh-fang-wen/">
               <h3 class="post-title">
-                单机安装蓝鲸CMDB社区版
+                CentOS 7 firewalld限制ssh访问
               </h3>
             </a>
           </div>
