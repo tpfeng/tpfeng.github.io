@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://tpfeng.github.io</id>
     <title>tpfeng IT技术博客</title>
-    <updated>2020-04-15T09:29:54.503Z</updated>
+    <updated>2020-04-15T09:31:10.726Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://tpfeng.github.io"/>
     <link rel="self" href="https://tpfeng.github.io/atom.xml"/>
@@ -36,7 +36,7 @@ Select (default p): p
 Partition number (1-4, default 1): 1
 </code></pre>
 <p>然后选择默认的开始块和结束块</p>
-<p>###最后记得要输入w保存<br>
+<p>##最后记得要输入w保存##<br>
 w</p>
 <p>格式化分区</p>
 <p><code>mkfs -t ext4 /dev/sdb1</code></p>
