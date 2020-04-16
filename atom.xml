@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://tpfeng.github.io</id>
     <title>tpfeng IT技术博客</title>
-    <updated>2020-04-15T09:36:41.617Z</updated>
+    <updated>2020-04-16T03:41:28.869Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://tpfeng.github.io"/>
     <link rel="self" href="https://tpfeng.github.io/atom.xml"/>
@@ -10,6 +10,179 @@
     <logo>https://tpfeng.github.io/images/avatar.png</logo>
     <icon>https://tpfeng.github.io/favicon.ico</icon>
     <rights>All rights reserved 2020, tpfeng IT技术博客</rights>
+    <entry>
+        <title type="html"><![CDATA[CentOS7 PXE+Kickstart自动化系统安装]]></title>
+        <id>https://tpfeng.github.io/post/centos7-pxekickstart-zi-dong-hua-xi-tong-an-zhuang/</id>
+        <link href="https://tpfeng.github.io/post/centos7-pxekickstart-zi-dong-hua-xi-tong-an-zhuang/">
+        </link>
+        <updated>2020-04-16T00:59:08.000Z</updated>
+        <content type="html"><![CDATA[<p>关闭SELinu和防火墙：</p>
+<pre><code>vim /etc/selinux/config
+
+
+SELINUX=disabled
+
+setenforce 0
+
+sestatus  –v #查看SELinux状态
+</code></pre>
+<p>关闭防火墙<br>
+systemctl stop firewalld<br>
+systemctl disable firewalld<br>
+systemctl status firewalld</p>
+<pre><code>yum install -y dhcp #安装DHCP 
+</code></pre>
+<p>dhcp配置文件位置：/etc/dhcp/dhcpd.conf<br>
+cat /etc/dhcp/dhcpd.conf</p>
+<h1 id=""></h1>
+<pre><code># DHCP Server Configuration file.
+#   see /usr/share/doc/dhcp*/dhcpd.conf.example
+#   see dhcpd.conf(5) man page
+subnet 192.168.56.0 netmask 255.255.255.0 {
+range 192.168.56.10 192.168.56.20;
+default-lease-time 600;
+max-lease-time 7200;
+filename &quot;pxelinux.0&quot;;
+next-server 192.168.56.14;
+}
+</code></pre>
+<p>subnet 192.168.56.0 netmask 255.255.255.0 服务端IP网段及掩码 注意网段为机器所在网段。<br>
+range 192.168.56.10 192.168.56.20; dhcp分发的地址范围，最好将本机IP包含在内。<br>
+default-lease-time 600;max-lease-time 7200; IP地址租约时间。<br>
+filename &quot;pxelinux.0&quot;; 指定引导文件位置，这里是TFTP根目录下的pxelinux.0。 next-server 192.168.56.14; TFTP服务器地址。</p>
+<pre><code>systemctl restart dhcpd   #重启DHCP服务器
+systemctl enable dhcpd    #开机启动DHCP
+</code></pre>
+<p>安装TFTP服务器<br>
+yum install -y tftp-server tftp</p>
+<pre><code>vim /etc/xinetd.d/tftp #辑配置文件，启用tftp服务器
+systemctl start tftp.socket   #启动
+systemctl enable tftp.socket
+</code></pre>
+<p>安装Syslinux软件包<br>
+yum install -y syslinux</p>
+<pre><code>cp /usr/share/syslinux/pxelinux.0 /var/lib/tftpboot/
+</code></pre>
+<p>把CD-ROM挂载到/mnt下<br>
+mount /dev/cdrom /mnt<br>
+cp -rf /mnt/isolinux/* /var/lib/tftpboot/</p>
+<p>准备pxe引导菜单：<br>
+[root@pxe1 /]# mkdir /var/lib/tftpboot/pxelinux.cfg<br>
+[root@pxe1 /]# mv /var/lib/tftpboot/isolinux.cfg /var/lib/tftpboot/pxelinux.cfg/default<br>
+[root@pxe1 /]# cd /var/lib/tftpboot/pxelinux.cfg<br>
+[root@pxe1 pxelinux.cfg]# ls<br>
+default<br>
+修改引导菜单选项：<br>
+[root@pxe1 pxelinux.cfg]# vim /var/lib/tftpboot/pxelinux.cfg/default<br>
+首先修改菜单等待时间<br>
+timeout 600 &lt;--菜单显示等待时间，单位为1/10秒，默认等待60秒。<br>
+修改菜单等待时间为60，即等待6秒，若无操作则进入默认菜单；<br>
+timeout 600<br>
+# 然后修改显示菜单<br>
+# -----------------------------------------------------------------<br>
+# 找到文件中的以下部分<br>
+label linux<br>
+menu label ^Install CentOS Linux 7<br>
+kernel vmlinuz<br>
+append initrd=initrd.img inst.stage2=hd:LABEL=CentOS\x207\x20x86_64 quiet</p>
+<pre><code>label check
+menu label Test this ^media &amp; install CentOS Linux 7
+menu default
+kernel vmlinuz
+append initrd=initrd.img inst.stage2=hd:LABEL=CentOS\x207\x20x86_64 rd.live.check quiet
+
+# 将其修改为
+label linux
+menu label ^Install CentOS Linux 7 by kickstart
+menu default
+kernel vmlinuz
+append initrd=initrd.img inst.repo=ftp://192.168.56.14/pub inst.ks=ftp://192.168.56.14/ks.cfg
+
+label linux 2
+menu label ^Install CentOS Linux 7 by vnc
+kernel vmlinuz
+append initrd=initrd.img inst.repo=ftp://192.168.56.14/pub inst.vnc inst.vncpassword=password
+
+label linux 3
+menu label ^Install CentOS Linux 7 by vnc -listen
+kernel vmlinuz
+append initrd=initrd.img inst.repo=ftp://192.168.56.14/pub inst.vnc inst.vncconnect=192.168.56.1
+</code></pre>
+<p>下面来验证TFTP服务配置是否正确：<br>
+[root@pxe1 kk]# cd /tmp<br>
+ls /var/lib/tftpboot/<br>
+boot.cat  grub.conf   isolinux.bin  pxelinux.0    splash.png  vesamenu.c32<br>
+boot.msg  initrd.img  memtest       pxelinux.cfg  TRANS.TBL   vmlinuz<br>
+[root@pxe1 kk]#<br>
+[root@pxe1 kk]# tftp 192.168.56.14<br>
+tftp&gt; get boot.msg<br>
+tftp&gt; quit<br>
+[root@pxe1 kk]#<br>
+[root@pxe1 kk]# ls<br>
+boot.msg<br>
+成功get到boot.msg文件，说明TFTP服务正常。</p>
+<pre><code>yum install -y system-config-kickstart
+</code></pre>
+<p>安装完成后，图形界面执行system-config-kickstart命令配置ks文件</p>
+<pre><code>%addon com_RedHat_kdump --disable --reserve-mb='auto'
+
+%end
+
+
+[root@pxe1 mnt]# yum install -y vsftpd
+[root@pxe1 mnt]# systemctl restart vsftpd
+[root@pxe1 mnt]# systemctl enable vsftpd
+Created symlink from /etc/systemd/system/multi-user.target.wants/vsftpd.service to /usr/lib/systemd/system/vsftpd.service.
+[root@pxe1 mnt]# systemctl status vsftpd
+
+yum install -y ftp
+</code></pre>
+<p>先将光盘从/mnt目录卸载，然后挂载到/var/ftp/pub目录下<br>
+[root@pxe1 ~]# umount /dev/cdrom<br>
+[root@pxe1 ~]# mount /dev/cdrom /var/ftp/pub/</p>
+<p>把图形界面生成的ks.cfg保存在 /var/ftp下，附ks.cfg实例。</p>
+<pre><code>#platform=x86, AMD64, or Intel EM64T
+#version=DEVEL
+# Install OS instead of upgrade
+install
+# Keyboard layouts
+keyboard 'us'
+# Root password
+rootpw --iscrypted $1$MI3gl0p5$3i3gyYHKauhDZuLCLodsQ0
+# Use network installation
+url --url=&quot;ftp://192.168.10.134/pub&quot;
+# System language
+lang zh_CN
+# Firewall configuration
+firewall --disabled
+# System authorization information
+auth  --useshadow  --passalgo=sha512
+# Use graphical install
+graphical
+firstboot --disable
+# SELinux configuration
+selinux --enforcing
+
+# Halt after installation
+halt
+# System timezone
+timezone Asia/Shanghai
+# System bootloader configuration
+bootloader --location=mbr
+# Clear the Master Boot Record
+zerombr
+# Partition clearing information
+clearpart --all --initlabel
+# Disk partitioning information
+part /boot --fstype=&quot;xfs&quot; --size=1500
+part swap --fstype=&quot;swap&quot; --size=2048
+part / --fstype=&quot;xfs&quot; --grow --size=1
+%addon com_RedHat_kdump --disable --reserve-mb='auto'
+
+%end
+</code></pre>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[CentOS 增加硬盘自动挂载配置]]></title>
         <id>https://tpfeng.github.io/post/centos-zeng-jia-ying-pan-zi-dong-gua-zai-pei-zhi/</id>
