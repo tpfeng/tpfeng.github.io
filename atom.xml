@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://tpfeng.github.io</id>
     <title>tpfeng IT技术博客</title>
-    <updated>2020-04-23T08:01:35.806Z</updated>
+    <updated>2020-04-23T08:04:00.255Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://tpfeng.github.io"/>
     <link rel="self" href="https://tpfeng.github.io/atom.xml"/>
@@ -16,47 +16,48 @@
         <link href="https://tpfeng.github.io/post/windows-zabbix-agent-ping-yuan-cheng-zhu-ji-de-jiao-cheng/">
         </link>
         <updated>2020-04-23T07:56:07.000Z</updated>
-        <content type="html"><![CDATA[<p>#1.	Windows安装zabbix angent</p>
-<p>##1.1.	打开zabbix官网下载对应服务器版本号的agent安装包。下面链接是4.0.10的agent安装包。<br>
-https://www.zabbix.com/downloads/4.0.10/zabbix_agent-4.0.10-windows-amd64.zip<br>
-##1.2.	下载fping :<br>
-https://raw.githubusercontent.com/dexit/fping-windows/master/x64%20(64%20bit)/Fping.exe<br>
-##1.3.	在C盘建立一个zabbix的文件夹，把解压后的zabbix程序和fping.exe放进这个文件夹。</p>
-<p>##1.4.	打开C:\zabbix\conf\zabbix_agentd.conf文件，清空，并粘贴下列内容,改变需要ping的目标ip或域名：<br>
-LogFile=c:\zabbix\zabbix_agentd.log<br>
-StartAgents=0<br>
-ServerActive=192.168.1.1<br>
-Hostname=192.168.1.2<br>
-RefreshActiveChecks=60<br>
-UnsafeUserParameters=1<br>
-UserParameter=pingtime,@echo off &amp;&amp; for /f &quot;tokens=4 delims==&quot; %A IN ('C:\zabbix\Fping.exe www.baidu.com -n 3^| find &quot;Average&quot;') do for /f &quot;tokens=1 delims=^, &quot; %B IN (&quot;%A&quot;) do echo %B</p>
+        <content type="html"><![CDATA[<h1 id="1-windows安装zabbix-angent">1.    Windows安装zabbix angent</h1>
+<h2 id="11打开zabbix官网下载对应服务器版本号的agent安装包-下面链接是4010的agent安装包">1.1.	打开zabbix官网下载对应服务器版本号的agent安装包。下面链接是4.0.10的agent安装包。</h2>
+<p>https://www.zabbix.com/downloads/4.0.10/zabbix_agent-4.0.10-windows-amd64.zip</p>
+<h2 id="12下载fping">1.2.	下载fping :</h2>
+<p>https://raw.githubusercontent.com/dexit/fping-windows/master/x64%20(64%20bit)/Fping.exe</p>
+<h2 id="13-在c盘建立一个zabbix的文件夹把解压后的zabbix程序和fpingexe放进这个文件夹">1.3.	    在C盘建立一个zabbix的文件夹，把解压后的zabbix程序和fping.exe放进这个文件夹。</h2>
+<h2 id="14-打开czabbixconfzabbix_agentdconf文件清空并粘贴下列内容改变需要ping的目标ip或域名">1.4.	    打开C:\zabbix\conf\zabbix_agentd.conf文件，清空，并粘贴下列内容,改变需要ping的目标ip或域名：</h2>
+<pre><code>LogFile=c:\zabbix\zabbix_agentd.log  
+StartAgents=0
+ServerActive=192.168.1.1
+Hostname=192.168.1.2
+RefreshActiveChecks=60
+UnsafeUserParameters=1
+UserParameter=pingtime,@echo off &amp;&amp; for /f &quot;tokens=4 delims==&quot; %A IN ('C:\zabbix\Fping.exe www.baidu.com -n 3^| find &quot;Average&quot;') do for /f &quot;tokens=1 delims=^, &quot; %B IN (&quot;%A&quot;) do echo %B
+</code></pre>
 <p>其中logfile是保存日志的地方，startAgents=0是表示主动式Agent，ServerActive为zabbix服务器的地址，Hostname为主机名或者本地ip，RefreshActiveChecks为多久提交一次数据，UnsafeUserParameters是否开启含特殊字符的自定义监控项，UserParameter为自定义监控项。UserParameter的ping地址自定义修改好。</p>
-<p>##1.5.	安装zabbix agent服务<br>
-以管理员身份打开cmd命令窗口输入：<br>
+<h2 id="15安装zabbix-agent服务">1.5.	安装zabbix agent服务</h2>
+<p>以管理员身份打开cmd命令窗口输入：<br>
 C:\zabbix\bin\zabbix_agentd.exe -c C:\zabbix\conf\zabbix_agentd.conf –i #安装服务<br>
-C:\zabbix\bin\zabbix_agentd.exe -c C:\zabbix\conf\zabbix_agentd.conf –s #运行服务<br>
-#2.	Zabbix Server添加监控项<br>
-##2.1.	克隆模板<br>
-打开配置-模板，找到Template OS Windows模板，点击进去，选择全克隆。克隆后起个名字，假设名字为“主动式Template OS Windows”。</p>
-<p>##2.1.	更新监控项为Zabbix客户端(主动式)<br>
-点击主动式Template OS Windows 模板，点击监控项，全选，选择批量更新。</p>
+C:\zabbix\bin\zabbix_agentd.exe -c C:\zabbix\conf\zabbix_agentd.conf –s #运行服务</p>
+<h1 id="2zabbix-server添加监控项">2.	Zabbix Server添加监控项</h1>
+<h2 id="21克隆模板">2.1.	克隆模板</h2>
+<p>打开配置-模板，找到Template OS Windows模板，点击进去，选择全克隆。克隆后起个名字，假设名字为“主动式Template OS Windows”。</p>
+<h2 id="21更新监控项为zabbix客户端主动式">2.1.	更新监控项为Zabbix客户端(主动式)</h2>
+<p>点击主动式Template OS Windows 模板，点击监控项，全选，选择批量更新。</p>
 <p>选择类型，更改为Zabbix客户端(主动式),然后拉到底下，点击更新。</p>
-<p>##2.3.	新建监控主机<br>
-点击配置-主机-创建主机,主机名称必须跟zabbix_agentd.conf里面的Hostname一样。群组选择你想要放置的地方。</p>
+<h2 id="23新建监控主机">2.3.	新建监控主机</h2>
+<p>点击配置-主机-创建主机,主机名称必须跟zabbix_agentd.conf里面的Hostname一样。群组选择你想要放置的地方。</p>
 <p>模板，链接刚才克隆的模板。</p>
-<p>##2.4.	新建自定义监控项<br>
-在刚才克隆的主动式Template OS Windows 模板中新建一个监控项。<br>
+<h2 id="24新建自定义监控项">2.4.	新建自定义监控项</h2>
+<p>在刚才克隆的主动式Template OS Windows 模板中新建一个监控项。<br>
 名称：起一个自定义的名称。<br>
 类型为：Zabbix客户端(主动式)。<br>
 键值：必须和zabbix_agentd.conf里面的UserParameter等号后面的名称一致。<br>
 单位为：ms<br>
 选择Network Interface应用集。</p>
-<p>##2.5.	新建图形<br>
-在刚才克隆的主动式Template OS Windows 模板中新建一个图形。<br>
+<h2 id="25新建图形">2.5.	新建图形</h2>
+<p>在刚才克隆的主动式Template OS Windows 模板中新建一个图形。<br>
 名称：起个自定义名称。<br>
 监控项：添加刚才新建的监控项。</p>
-<p>##2.6.	查看图形<br>
-点击监测-图形-选择你新建的主机，选择图形。</p>
+<h2 id="26查看图形">2.6.	查看图形</h2>
+<p>点击监测-图形-选择你新建的主机，选择图形。</p>
 ]]></content>
     </entry>
     <entry>

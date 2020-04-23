@@ -3,7 +3,7 @@
     <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Windows Zabbix Agent ping远程主机的教程 | tpfeng IT技术博客</title>
-<link rel="shortcut icon" href="https://tpfeng.github.io/favicon.ico?v=1587628856374">
+<link rel="shortcut icon" href="https://tpfeng.github.io/favicon.ico?v=1587629036883">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
 <link rel="stylesheet" href="https://tpfeng.github.io/styles/main.css">
 <link rel="alternate" type="application/atom+xml" title="Windows Zabbix Agent ping远程主机的教程 | tpfeng IT技术博客 - Atom Feed" href="https://tpfeng.github.io/atom.xml">
@@ -11,8 +11,8 @@
 
 
 
-    <meta name="description" content="#1.	Windows安装zabbix angent
-##1.1.	打开zabbix官网下载对应服务器版本号的agent安装包。下面链接是4.0.10的agent安装包。
+    <meta name="description" content="1.    Windows安装zabbix angent
+1.1.	打开zabbix官网下载对应服务器版本号的agent安装包。下面链接是4.0.10的agent安装包。
 https://www.zabbix.com/downloads/4..." />
     <meta name="keywords" content="" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
@@ -23,7 +23,7 @@ https://www.zabbix.com/downloads/4..." />
       <div class="main-content">
         <div class="site-header">
   <a href="https://tpfeng.github.io">
-  <img class="avatar" src="https://tpfeng.github.io/images/avatar.png?v=1587628856374" alt="">
+  <img class="avatar" src="https://tpfeng.github.io/images/avatar.png?v=1587629036883" alt="">
   </a>
   <h1 class="site-title">
     tpfeng IT技术博客
@@ -90,51 +90,73 @@ https://www.zabbix.com/downloads/4..." />
             
             <div class="post-content-wrapper">
               <div class="post-content">
-                <p>#1.	Windows安装zabbix angent</p>
-<p>##1.1.	打开zabbix官网下载对应服务器版本号的agent安装包。下面链接是4.0.10的agent安装包。<br>
-https://www.zabbix.com/downloads/4.0.10/zabbix_agent-4.0.10-windows-amd64.zip<br>
-##1.2.	下载fping :<br>
-https://raw.githubusercontent.com/dexit/fping-windows/master/x64%20(64%20bit)/Fping.exe<br>
-##1.3.	在C盘建立一个zabbix的文件夹，把解压后的zabbix程序和fping.exe放进这个文件夹。</p>
-<p>##1.4.	打开C:\zabbix\conf\zabbix_agentd.conf文件，清空，并粘贴下列内容,改变需要ping的目标ip或域名：<br>
-LogFile=c:\zabbix\zabbix_agentd.log<br>
-StartAgents=0<br>
-ServerActive=192.168.1.1<br>
-Hostname=192.168.1.2<br>
-RefreshActiveChecks=60<br>
-UnsafeUserParameters=1<br>
-UserParameter=pingtime,@echo off &amp;&amp; for /f &quot;tokens=4 delims==&quot; %A IN ('C:\zabbix\Fping.exe www.baidu.com -n 3^| find &quot;Average&quot;') do for /f &quot;tokens=1 delims=^, &quot; %B IN (&quot;%A&quot;) do echo %B</p>
+                <h1 id="1-windows安装zabbix-angent">1.    Windows安装zabbix angent</h1>
+<h2 id="11打开zabbix官网下载对应服务器版本号的agent安装包-下面链接是4010的agent安装包">1.1.	打开zabbix官网下载对应服务器版本号的agent安装包。下面链接是4.0.10的agent安装包。</h2>
+<p>https://www.zabbix.com/downloads/4.0.10/zabbix_agent-4.0.10-windows-amd64.zip</p>
+<h2 id="12下载fping">1.2.	下载fping :</h2>
+<p>https://raw.githubusercontent.com/dexit/fping-windows/master/x64%20(64%20bit)/Fping.exe</p>
+<h2 id="13-在c盘建立一个zabbix的文件夹把解压后的zabbix程序和fpingexe放进这个文件夹">1.3.	    在C盘建立一个zabbix的文件夹，把解压后的zabbix程序和fping.exe放进这个文件夹。</h2>
+<h2 id="14-打开czabbixconfzabbix_agentdconf文件清空并粘贴下列内容改变需要ping的目标ip或域名">1.4.	    打开C:\zabbix\conf\zabbix_agentd.conf文件，清空，并粘贴下列内容,改变需要ping的目标ip或域名：</h2>
+<pre><code>LogFile=c:\zabbix\zabbix_agentd.log  
+StartAgents=0
+ServerActive=192.168.1.1
+Hostname=192.168.1.2
+RefreshActiveChecks=60
+UnsafeUserParameters=1
+UserParameter=pingtime,@echo off &amp;&amp; for /f &quot;tokens=4 delims==&quot; %A IN ('C:\zabbix\Fping.exe www.baidu.com -n 3^| find &quot;Average&quot;') do for /f &quot;tokens=1 delims=^, &quot; %B IN (&quot;%A&quot;) do echo %B
+</code></pre>
 <p>其中logfile是保存日志的地方，startAgents=0是表示主动式Agent，ServerActive为zabbix服务器的地址，Hostname为主机名或者本地ip，RefreshActiveChecks为多久提交一次数据，UnsafeUserParameters是否开启含特殊字符的自定义监控项，UserParameter为自定义监控项。UserParameter的ping地址自定义修改好。</p>
-<p>##1.5.	安装zabbix agent服务<br>
-以管理员身份打开cmd命令窗口输入：<br>
+<h2 id="15安装zabbix-agent服务">1.5.	安装zabbix agent服务</h2>
+<p>以管理员身份打开cmd命令窗口输入：<br>
 C:\zabbix\bin\zabbix_agentd.exe -c C:\zabbix\conf\zabbix_agentd.conf –i #安装服务<br>
-C:\zabbix\bin\zabbix_agentd.exe -c C:\zabbix\conf\zabbix_agentd.conf –s #运行服务<br>
-#2.	Zabbix Server添加监控项<br>
-##2.1.	克隆模板<br>
-打开配置-模板，找到Template OS Windows模板，点击进去，选择全克隆。克隆后起个名字，假设名字为“主动式Template OS Windows”。</p>
-<p>##2.1.	更新监控项为Zabbix客户端(主动式)<br>
-点击主动式Template OS Windows 模板，点击监控项，全选，选择批量更新。</p>
+C:\zabbix\bin\zabbix_agentd.exe -c C:\zabbix\conf\zabbix_agentd.conf –s #运行服务</p>
+<h1 id="2zabbix-server添加监控项">2.	Zabbix Server添加监控项</h1>
+<h2 id="21克隆模板">2.1.	克隆模板</h2>
+<p>打开配置-模板，找到Template OS Windows模板，点击进去，选择全克隆。克隆后起个名字，假设名字为“主动式Template OS Windows”。</p>
+<h2 id="21更新监控项为zabbix客户端主动式">2.1.	更新监控项为Zabbix客户端(主动式)</h2>
+<p>点击主动式Template OS Windows 模板，点击监控项，全选，选择批量更新。</p>
 <p>选择类型，更改为Zabbix客户端(主动式),然后拉到底下，点击更新。</p>
-<p>##2.3.	新建监控主机<br>
-点击配置-主机-创建主机,主机名称必须跟zabbix_agentd.conf里面的Hostname一样。群组选择你想要放置的地方。</p>
+<h2 id="23新建监控主机">2.3.	新建监控主机</h2>
+<p>点击配置-主机-创建主机,主机名称必须跟zabbix_agentd.conf里面的Hostname一样。群组选择你想要放置的地方。</p>
 <p>模板，链接刚才克隆的模板。</p>
-<p>##2.4.	新建自定义监控项<br>
-在刚才克隆的主动式Template OS Windows 模板中新建一个监控项。<br>
+<h2 id="24新建自定义监控项">2.4.	新建自定义监控项</h2>
+<p>在刚才克隆的主动式Template OS Windows 模板中新建一个监控项。<br>
 名称：起一个自定义的名称。<br>
 类型为：Zabbix客户端(主动式)。<br>
 键值：必须和zabbix_agentd.conf里面的UserParameter等号后面的名称一致。<br>
 单位为：ms<br>
 选择Network Interface应用集。</p>
-<p>##2.5.	新建图形<br>
-在刚才克隆的主动式Template OS Windows 模板中新建一个图形。<br>
+<h2 id="25新建图形">2.5.	新建图形</h2>
+<p>在刚才克隆的主动式Template OS Windows 模板中新建一个图形。<br>
 名称：起个自定义名称。<br>
 监控项：添加刚才新建的监控项。</p>
-<p>##2.6.	查看图形<br>
-点击监测-图形-选择你新建的主机，选择图形。</p>
+<h2 id="26查看图形">2.6.	查看图形</h2>
+<p>点击监测-图形-选择你新建的主机，选择图形。</p>
 
               </div>
               <div class="toc-container">
-                
+                <ul class="markdownIt-TOC">
+<li><a href="#1-windows%E5%AE%89%E8%A3%85zabbix-angent">1.    Windows安装zabbix angent</a>
+<ul>
+<li><a href="#11%E6%89%93%E5%BC%80zabbix%E5%AE%98%E7%BD%91%E4%B8%8B%E8%BD%BD%E5%AF%B9%E5%BA%94%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%89%88%E6%9C%AC%E5%8F%B7%E7%9A%84agent%E5%AE%89%E8%A3%85%E5%8C%85-%E4%B8%8B%E9%9D%A2%E9%93%BE%E6%8E%A5%E6%98%AF4010%E7%9A%84agent%E5%AE%89%E8%A3%85%E5%8C%85">1.1.	打开zabbix官网下载对应服务器版本号的agent安装包。下面链接是4.0.10的agent安装包。</a></li>
+<li><a href="#12%E4%B8%8B%E8%BD%BDfping">1.2.	下载fping :</a></li>
+<li><a href="#13-%E5%9C%A8c%E7%9B%98%E5%BB%BA%E7%AB%8B%E4%B8%80%E4%B8%AAzabbix%E7%9A%84%E6%96%87%E4%BB%B6%E5%A4%B9%E6%8A%8A%E8%A7%A3%E5%8E%8B%E5%90%8E%E7%9A%84zabbix%E7%A8%8B%E5%BA%8F%E5%92%8Cfpingexe%E6%94%BE%E8%BF%9B%E8%BF%99%E4%B8%AA%E6%96%87%E4%BB%B6%E5%A4%B9">1.3.	    在C盘建立一个zabbix的文件夹，把解压后的zabbix程序和fping.exe放进这个文件夹。</a></li>
+<li><a href="#14-%E6%89%93%E5%BC%80czabbixconfzabbix_agentdconf%E6%96%87%E4%BB%B6%E6%B8%85%E7%A9%BA%E5%B9%B6%E7%B2%98%E8%B4%B4%E4%B8%8B%E5%88%97%E5%86%85%E5%AE%B9%E6%94%B9%E5%8F%98%E9%9C%80%E8%A6%81ping%E7%9A%84%E7%9B%AE%E6%A0%87ip%E6%88%96%E5%9F%9F%E5%90%8D">1.4.	    打开C:\zabbix\conf\zabbix_agentd.conf文件，清空，并粘贴下列内容,改变需要ping的目标ip或域名：</a></li>
+<li><a href="#15%E5%AE%89%E8%A3%85zabbix-agent%E6%9C%8D%E5%8A%A1">1.5.	安装zabbix agent服务</a></li>
+</ul>
+</li>
+<li><a href="#2zabbix-server%E6%B7%BB%E5%8A%A0%E7%9B%91%E6%8E%A7%E9%A1%B9">2.	Zabbix Server添加监控项</a>
+<ul>
+<li><a href="#21%E5%85%8B%E9%9A%86%E6%A8%A1%E6%9D%BF">2.1.	克隆模板</a></li>
+<li><a href="#21%E6%9B%B4%E6%96%B0%E7%9B%91%E6%8E%A7%E9%A1%B9%E4%B8%BAzabbix%E5%AE%A2%E6%88%B7%E7%AB%AF%E4%B8%BB%E5%8A%A8%E5%BC%8F">2.1.	更新监控项为Zabbix客户端(主动式)</a></li>
+<li><a href="#23%E6%96%B0%E5%BB%BA%E7%9B%91%E6%8E%A7%E4%B8%BB%E6%9C%BA">2.3.	新建监控主机</a></li>
+<li><a href="#24%E6%96%B0%E5%BB%BA%E8%87%AA%E5%AE%9A%E4%B9%89%E7%9B%91%E6%8E%A7%E9%A1%B9">2.4.	新建自定义监控项</a></li>
+<li><a href="#25%E6%96%B0%E5%BB%BA%E5%9B%BE%E5%BD%A2">2.5.	新建图形</a></li>
+<li><a href="#26%E6%9F%A5%E7%9C%8B%E5%9B%BE%E5%BD%A2">2.6.	查看图形</a></li>
+</ul>
+</li>
+</ul>
+
               </div>
             </div>
           </article>
