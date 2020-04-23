@@ -2,18 +2,19 @@
   <head>
     <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>centos7+/debian9+/ubuntu16+ Trojan | tpfeng IT技术博客</title>
+<title>Windows Zabbix Agent ping远程主机的教程 | tpfeng IT技术博客</title>
 <link rel="shortcut icon" href="https://tpfeng.github.io/favicon.ico?v=1587628856374">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
 <link rel="stylesheet" href="https://tpfeng.github.io/styles/main.css">
-<link rel="alternate" type="application/atom+xml" title="centos7+/debian9+/ubuntu16+ Trojan | tpfeng IT技术博客 - Atom Feed" href="https://tpfeng.github.io/atom.xml">
+<link rel="alternate" type="application/atom+xml" title="Windows Zabbix Agent ping远程主机的教程 | tpfeng IT技术博客 - Atom Feed" href="https://tpfeng.github.io/atom.xml">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
 
 
 
-    <meta name="description" content="#centos7+/debian9+/ubuntu16+
-`curl -O https://raw.githubusercontent.com/atrandys/trojan/master/trojan_mult.sh &amp;&amp;..." />
-    <meta name="keywords" content="综合技术" />
+    <meta name="description" content="#1.	Windows安装zabbix angent
+##1.1.	打开zabbix官网下载对应服务器版本号的agent安装包。下面链接是4.0.10的agent安装包。
+https://www.zabbix.com/downloads/4..." />
+    <meta name="keywords" content="" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
     <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
   </head>
@@ -75,26 +76,61 @@
         <div class="post-detail">
           <article class="post">
             <h2 class="post-title">
-              centos7+/debian9+/ubuntu16+ Trojan
+              Windows Zabbix Agent ping远程主机的教程
             </h2>
             <div class="post-info">
               <span>
-                2020-04-09
+                2020-04-23
               </span>
               <span>
-                1 min read
+                3 min read
               </span>
-              
-                <a href="https://tpfeng.github.io/tag/8iaLeXCFd/" class="post-tag">
-                  # 综合技术
-                </a>
               
             </div>
             
             <div class="post-content-wrapper">
               <div class="post-content">
-                <p>#centos7+/debian9+/ubuntu16+</p>
-<pre><code>`curl -O https://raw.githubusercontent.com/atrandys/trojan/master/trojan_mult.sh &amp;&amp; chmod +x trojan_mult.sh &amp;&amp; ./trojan_mult.sh`</code></pre>
+                <p>#1.	Windows安装zabbix angent</p>
+<p>##1.1.	打开zabbix官网下载对应服务器版本号的agent安装包。下面链接是4.0.10的agent安装包。<br>
+https://www.zabbix.com/downloads/4.0.10/zabbix_agent-4.0.10-windows-amd64.zip<br>
+##1.2.	下载fping :<br>
+https://raw.githubusercontent.com/dexit/fping-windows/master/x64%20(64%20bit)/Fping.exe<br>
+##1.3.	在C盘建立一个zabbix的文件夹，把解压后的zabbix程序和fping.exe放进这个文件夹。</p>
+<p>##1.4.	打开C:\zabbix\conf\zabbix_agentd.conf文件，清空，并粘贴下列内容,改变需要ping的目标ip或域名：<br>
+LogFile=c:\zabbix\zabbix_agentd.log<br>
+StartAgents=0<br>
+ServerActive=192.168.1.1<br>
+Hostname=192.168.1.2<br>
+RefreshActiveChecks=60<br>
+UnsafeUserParameters=1<br>
+UserParameter=pingtime,@echo off &amp;&amp; for /f &quot;tokens=4 delims==&quot; %A IN ('C:\zabbix\Fping.exe www.baidu.com -n 3^| find &quot;Average&quot;') do for /f &quot;tokens=1 delims=^, &quot; %B IN (&quot;%A&quot;) do echo %B</p>
+<p>其中logfile是保存日志的地方，startAgents=0是表示主动式Agent，ServerActive为zabbix服务器的地址，Hostname为主机名或者本地ip，RefreshActiveChecks为多久提交一次数据，UnsafeUserParameters是否开启含特殊字符的自定义监控项，UserParameter为自定义监控项。UserParameter的ping地址自定义修改好。</p>
+<p>##1.5.	安装zabbix agent服务<br>
+以管理员身份打开cmd命令窗口输入：<br>
+C:\zabbix\bin\zabbix_agentd.exe -c C:\zabbix\conf\zabbix_agentd.conf –i #安装服务<br>
+C:\zabbix\bin\zabbix_agentd.exe -c C:\zabbix\conf\zabbix_agentd.conf –s #运行服务<br>
+#2.	Zabbix Server添加监控项<br>
+##2.1.	克隆模板<br>
+打开配置-模板，找到Template OS Windows模板，点击进去，选择全克隆。克隆后起个名字，假设名字为“主动式Template OS Windows”。</p>
+<p>##2.1.	更新监控项为Zabbix客户端(主动式)<br>
+点击主动式Template OS Windows 模板，点击监控项，全选，选择批量更新。</p>
+<p>选择类型，更改为Zabbix客户端(主动式),然后拉到底下，点击更新。</p>
+<p>##2.3.	新建监控主机<br>
+点击配置-主机-创建主机,主机名称必须跟zabbix_agentd.conf里面的Hostname一样。群组选择你想要放置的地方。</p>
+<p>模板，链接刚才克隆的模板。</p>
+<p>##2.4.	新建自定义监控项<br>
+在刚才克隆的主动式Template OS Windows 模板中新建一个监控项。<br>
+名称：起一个自定义的名称。<br>
+类型为：Zabbix客户端(主动式)。<br>
+键值：必须和zabbix_agentd.conf里面的UserParameter等号后面的名称一致。<br>
+单位为：ms<br>
+选择Network Interface应用集。</p>
+<p>##2.5.	新建图形<br>
+在刚才克隆的主动式Template OS Windows 模板中新建一个图形。<br>
+名称：起个自定义名称。<br>
+监控项：添加刚才新建的监控项。</p>
+<p>##2.6.	查看图形<br>
+点击监测-图形-选择你新建的主机，选择图形。</p>
 
               </div>
               <div class="toc-container">
@@ -107,9 +143,9 @@
         
           <div class="next-post">
             <div class="next">下一篇</div>
-            <a href="https://tpfeng.github.io/post/debian-9-ubuntu-1804-centos7-v2raywstls/">
+            <a href="https://tpfeng.github.io/post/Exchange-outlook/">
               <h3 class="post-title">
-                Debian 9+ / Ubuntu 18.04+ / Centos7+ V2ray+WS+TLS
+                Outlook配置Exchange邮箱提示未加密问题
               </h3>
             </a>
           </div>

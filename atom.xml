@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://tpfeng.github.io</id>
     <title>tpfeng IT技术博客</title>
-    <updated>2020-04-21T06:55:50.841Z</updated>
+    <updated>2020-04-23T08:01:11.551Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://tpfeng.github.io"/>
     <link rel="self" href="https://tpfeng.github.io/atom.xml"/>
@@ -10,6 +10,66 @@
     <logo>https://tpfeng.github.io/images/avatar.png</logo>
     <icon>https://tpfeng.github.io/favicon.ico</icon>
     <rights>All rights reserved 2020, tpfeng IT技术博客</rights>
+    <entry>
+        <title type="html"><![CDATA[Windows Zabbix Agent ping远程主机的教程]]></title>
+        <id>https://tpfeng.github.io/post/windows-zabbix-agent-ping-yuan-cheng-zhu-ji-de-jiao-cheng/</id>
+        <link href="https://tpfeng.github.io/post/windows-zabbix-agent-ping-yuan-cheng-zhu-ji-de-jiao-cheng/">
+        </link>
+        <updated>2020-04-23T07:56:07.000Z</updated>
+        <content type="html"><![CDATA[<p>#1.	Windows安装zabbix angent</p>
+<p>##1.1.	打开zabbix官网下载对应服务器版本号的agent安装包。下面链接是4.0.10的agent安装包。<br>
+https://www.zabbix.com/downloads/4.0.10/zabbix_agent-4.0.10-windows-amd64.zip<br>
+##1.2.	下载fping :<br>
+https://raw.githubusercontent.com/dexit/fping-windows/master/x64%20(64%20bit)/Fping.exe<br>
+##1.3.	在C盘建立一个zabbix的文件夹，把解压后的zabbix程序和fping.exe放进这个文件夹。</p>
+<p>##1.4.	打开C:\zabbix\conf\zabbix_agentd.conf文件，清空，并粘贴下列内容,改变需要ping的目标ip或域名：<br>
+LogFile=c:\zabbix\zabbix_agentd.log<br>
+StartAgents=0<br>
+ServerActive=192.168.1.1<br>
+Hostname=192.168.1.2<br>
+RefreshActiveChecks=60<br>
+UnsafeUserParameters=1<br>
+UserParameter=pingtime,@echo off &amp;&amp; for /f &quot;tokens=4 delims==&quot; %A IN ('C:\zabbix\Fping.exe www.baidu.com -n 3^| find &quot;Average&quot;') do for /f &quot;tokens=1 delims=^, &quot; %B IN (&quot;%A&quot;) do echo %B</p>
+<p>其中logfile是保存日志的地方，startAgents=0是表示主动式Agent，ServerActive为zabbix服务器的地址，Hostname为主机名或者本地ip，RefreshActiveChecks为多久提交一次数据，UnsafeUserParameters是否开启含特殊字符的自定义监控项，UserParameter为自定义监控项。UserParameter的ping地址自定义修改好。</p>
+<p>##1.5.	安装zabbix agent服务<br>
+以管理员身份打开cmd命令窗口输入：<br>
+C:\zabbix\bin\zabbix_agentd.exe -c C:\zabbix\conf\zabbix_agentd.conf –i #安装服务<br>
+C:\zabbix\bin\zabbix_agentd.exe -c C:\zabbix\conf\zabbix_agentd.conf –s #运行服务<br>
+#2.	Zabbix Server添加监控项<br>
+##2.1.	克隆模板<br>
+打开配置-模板，找到Template OS Windows模板，点击进去，选择全克隆。克隆后起个名字，假设名字为“主动式Template OS Windows”。</p>
+<p>##2.1.	更新监控项为Zabbix客户端(主动式)<br>
+点击主动式Template OS Windows 模板，点击监控项，全选，选择批量更新。</p>
+<p>选择类型，更改为Zabbix客户端(主动式),然后拉到底下，点击更新。</p>
+<p>##2.3.	新建监控主机<br>
+点击配置-主机-创建主机,主机名称必须跟zabbix_agentd.conf里面的Hostname一样。群组选择你想要放置的地方。</p>
+<p>模板，链接刚才克隆的模板。</p>
+<p>##2.4.	新建自定义监控项<br>
+在刚才克隆的主动式Template OS Windows 模板中新建一个监控项。<br>
+名称：起一个自定义的名称。<br>
+类型为：Zabbix客户端(主动式)。<br>
+键值：必须和zabbix_agentd.conf里面的UserParameter等号后面的名称一致。<br>
+单位为：ms<br>
+选择Network Interface应用集。</p>
+<p>##2.5.	新建图形<br>
+在刚才克隆的主动式Template OS Windows 模板中新建一个图形。<br>
+名称：起个自定义名称。<br>
+监控项：添加刚才新建的监控项。</p>
+<p>##2.6.	查看图形<br>
+点击监测-图形-选择你新建的主机，选择图形。</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Outlook配置Exchange邮箱提示未加密问题]]></title>
+        <id>https://tpfeng.github.io/post/Exchange-outlook/</id>
+        <link href="https://tpfeng.github.io/post/Exchange-outlook/">
+        </link>
+        <updated>2020-04-21T06:34:28.000Z</updated>
+        <content type="html"><![CDATA[<p>##Outlook配置Exchange邮箱提示未加密问题</p>
+<p>原因：Exchange账户中的IMAP未启用，而无法配置自动发现。<br>
+解决办法：在Exchange账户里面搜索该用户，编辑，启用IMAP</p>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[CentOS7 PXE+Kickstart自动化系统安装]]></title>
         <id>https://tpfeng.github.io/post/centos7-pxekickstart-zi-dong-hua-xi-tong-an-zhuang/</id>
@@ -302,8 +362,8 @@ quit; 退出数据库</p>
     </entry>
     <entry>
         <title type="html"><![CDATA[普通用户SSH免密码互信登录]]></title>
-        <id>https://tpfeng.github.io/post/pu-tong-yong-hu-ssh-mian-mi-ma-hu-xin-deng-lu/</id>
-        <link href="https://tpfeng.github.io/post/pu-tong-yong-hu-ssh-mian-mi-ma-hu-xin-deng-lu/">
+        <id>https://tpfeng.github.io/post/pu-tong-yong-hu-ssh-mian-mi-ma-hu-xin-deng-lu - 副本/</id>
+        <link href="https://tpfeng.github.io/post/pu-tong-yong-hu-ssh-mian-mi-ma-hu-xin-deng-lu - 副本/">
         </link>
         <updated>2020-04-10T06:34:28.000Z</updated>
         <content type="html"><![CDATA[<p>##Server A （user,IP:192.168.1.212）<br>
@@ -362,70 +422,6 @@ chmod 777 -R ~/.ssh<br>
 <code>systemctl start docker</code></p>
 <p>#测试运行 hello-world<br>
 <code>docker run hello-world</code></p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[单机安装蓝鲸CMDB社区版]]></title>
-        <id>https://tpfeng.github.io/post/dan-ji-an-zhuang-lan-jing-cmdb-she-qu-ban/</id>
-        <link href="https://tpfeng.github.io/post/dan-ji-an-zhuang-lan-jing-cmdb-she-qu-ban/">
-        </link>
-        <updated>2020-04-09T02:01:32.000Z</updated>
-        <content type="html"><![CDATA[<h1 id="通过命令临时禁用-selinux">通过命令临时禁用 SELinux</h1>
-<p>setenforce 0</p>
-<h1 id="或者修改配置文件">或者修改配置文件</h1>
-<p>sed -i 's/^SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config</p>
-<h1 id="检查默认防火墙状态如果返回-not-running可以跳过后面的命令">检查默认防火墙状态，如果返回 not running，可以跳过后面的命令</h1>
-<p>firewall-cmd --state</p>
-<p><code>systemctl stop firewalld</code>   # 停止 firewalld<br>
-<code>systemctl disable firewalld</code># 禁用 firewall 开机启动</p>
-<h1 id="安装-rsync">安装 rsync</h1>
-<p>yum -y install rsync</p>
-<h1 id="调整-root-账号下的-max-open-files-值">调整 root 账号下的 max open files 值</h1>
-<pre><code>`cat &lt;&lt; EOF &gt;&gt; /etc/security/limits.conf
-root soft nofile 102400
-root hard nofile 102400
-EOF`
-</code></pre>
-<p>下载蓝鲸bkce<br>
-cd /usr/local/src</p>
-<p>wget http://bkopen-1252002024.file.myqcloud.com/ce/ae1a51dfb4827622bd5e47f8cd385a17/bkce_src-5.1.27.tar.gz</p>
-<p>tar zxvf bkce_src-5.1.27.tar.gz  -C /data<br>
-下载分包</p>
-<p>wget http://bkopen-1252002024.file.myqcloud.com/ce/422bc7ac/install_ce-1.6.24.168.tgz</p>
-<p>在蓝鲸SSL页面申请证书<br>
-https://bk.tencent.com/download_ssl/<br>
-解压MAC证书<br>
-tar xzvf ssl_certificates.tar.gz -C /data/src/cert<br>
-cp /data/install/install.config.3IP.sample /data/install/install.config<br>
-单机部署，修改主机为你服务器的外网IP</p>
-<p>[bkce-basic]<br>
-10.0.0.1 nginx,rabbitmq,kafka(config),zk(config),es,appt,fta,consul,bkdata(databus)<br>
-10.0.0.2 mongodb,appo,kafka(config),zk(config),es,mysql,consul,bkdata(dataapi),beanstalk<br>
-10.0.0.3 paas,cmdb,job,gse,license,kafka(config),zk(config),es,redis,influxdb,consul,bkdata(monitor)</p>
-<p>设置 /data/install/gloals.env文件的域名信息<br>
-export BK_DOMAIN=&quot;bk.com&quot;                # 蓝鲸根域名(不含主机名)<br>
-export PAAS_FQDN=&quot;paas.<span class='katex-error' title='ParseError: KaTeX parse error: Expected &#039;EOF&#039;, got &#039;#&#039; at position 18: …_DOMAIN&quot;       #̲ PAAS 完整域名
-expo…'>BK_DOMAIN&quot;       # PAAS 完整域名
-export CMDB_FQDN=&quot;cmdb.</span>BK_DOMAIN&quot;       # CMDB 完整域名<br>
-export JOB_FQDN=&quot;job.$BK_DOMAIN&quot;         # JOB 完整域名<br>
-配置 SSH 免密登陆<br>
-登录到中控机，执行以下操作：<br>
-cd /data/install<br>
-bash configure_ssh_without_pass</p>
-<p>运行以下脚本，来校验是否满足：<br>
-cd /data/install<br>
-bash precheck.sh</p>
-<p>若安装过程钟，提示<br>
-erlang rabbitmq-server需要安装<br>
-百度解决之。</p>
-<p>执行安装<br>
-如果部署全部组件，请执行：<br>
-$ cd /data/install<br>
-$ ./install_minibk -y<br>
-如果按需部署，假设只需要 PaaS，CMDB，JOB 平台，请执行：<br>
-$ cd /data/install<br>
-$ ./install_minibk<br>
-$ ./bk_install paas &amp;&amp; ./bk_install cmdb &amp;&amp; ./bk_install job</p>
 ]]></content>
     </entry>
 </feed>
