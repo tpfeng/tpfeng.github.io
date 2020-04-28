@@ -3,7 +3,7 @@
     <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>CMD命令批量生成bat方法 | tpfeng IT技术博客</title>
-<link rel="shortcut icon" href="https://tpfeng.github.io/favicon.ico?v=1588047806562">
+<link rel="shortcut icon" href="https://tpfeng.github.io/favicon.ico?v=1588047912614">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
 <link rel="stylesheet" href="https://tpfeng.github.io/styles/main.css">
 <link rel="alternate" type="application/atom+xml" title="CMD命令批量生成bat方法 | tpfeng IT技术博客 - Atom Feed" href="https://tpfeng.github.io/atom.xml">
@@ -14,7 +14,7 @@
     <meta name="description" content="@echo off
 setlocal enabledelayedexpansion 
 
-for /f &quot;tokens=1,* delims= &quot; %%i in (C:\Users\fengxuezhong\Desktop..." />
+for /f &quot;tokens=1,* delims= &quot; %%i in (C:\Users\test\Desktop\test.tx..." />
     <meta name="keywords" content="" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
     <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
@@ -24,7 +24,7 @@ for /f &quot;tokens=1,* delims= &quot; %%i in (C:\Users\fengxuezhong\Desktop..."
       <div class="main-content">
         <div class="site-header">
   <a href="https://tpfeng.github.io">
-  <img class="avatar" src="https://tpfeng.github.io/images/avatar.png?v=1588047806562" alt="">
+  <img class="avatar" src="https://tpfeng.github.io/images/avatar.png?v=1588047912614" alt="">
   </a>
   <h1 class="site-title">
     tpfeng IT技术博客
@@ -94,8 +94,8 @@ for /f &quot;tokens=1,* delims= &quot; %%i in (C:\Users\fengxuezhong\Desktop..."
                 <pre><code>@echo off
 setlocal enabledelayedexpansion 
 
-for /f &quot;tokens=1,* delims= &quot; %%i in (C:\Users\fengxuezhong\Desktop\test.txt) do (
-    set &quot;str=D:\remotebat\desktop\%%i.bat&quot;
+for /f &quot;tokens=1,* delims= &quot; %%i in (C:\Users\test\Desktop\test.txt) do (
+    set &quot;str=D:\Tools\test\%%i.bat&quot;
     echo %%j &gt; !str!
 ) 
 </code></pre>
@@ -105,7 +105,8 @@ for /f &quot;tokens=1,* delims= &quot; %%i in (C:\Users\fengxuezhong\Desktop\tes
 192.100.3.3 D:\Tools\test.exe /connect:192.100.3.3:8080
 192.100.4.4 D:\Tools\test.exe /connect:192.100.4.4:8080
 </code></pre>
-<p>会生成192.100.1.1.bat，bat内容为D:\Tools\test.exe /connect:192.100.1.1:8080.<br>
+<p>会在D:\Tools\test目录<br>
+生成192.100.1.1.bat，bat内容为D:\Tools\test.exe /connect:192.100.1.1:8080.<br>
 192.100.2.2.bat，bat内容为D:\Tools\test.exe /connect:192.100.2.2:8080<br>
 ...</p>
 
