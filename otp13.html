@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>OTP 身份验证器</title>
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+  <style>
+    :root {
+      --primary-color: #007aff; --success-color: #34c759; --error-color: #ff3b30;
+      --bg-color: #f2f2f7; --card-bg: #ffffff; --text-main: #1c1c1e; --text-secondary: #3a3a3c;
+    }
+    body { 
+      font-family: "Lantinghei SC", "Microsoft YaHei", -apple-system, sans-serif; 
+      max-width: 480px; margin: 0 auto; padding: 40px 20px; background: var(--bg-color); 
+      color: var(--text-main); -webkit-font-smoothing: antialiased;
+      user-select: none; -webkit-user-select: none;
+    }
+    /* 默认隐藏主容器，校验通过再显示 */
+    #appContainer { display: none; }
+    .container { background: var(--card-bg); padding: 32px 24px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); text-align: center; }
+    #mainHeading { display: block; margin: 0 auto 4px auto; font-size: 26px; word-break: break-all; font-weight: 700; }
+    #subHeading { display: block; color: var(--text-secondary); font-size: 22px; margin: 0 auto 15px auto; min-height: 1.2em; word-break: break-all; font-weight: 600; }
+    .input-wrapper { position: relative; width: 100%; margin: 20px 0; }
+    input#secretInput {
+      width: 100%; padding: 16px; border: 2px solid var(--primary-color); background: #ffffff;
+      border-radius: 14px; box-sizing: border-box; font-size: 15px; outline: none;
+      box-shadow: 0 4px 12px rgba(0, 122, 255, 0.1); user-select: text; -webkit-user-select: text;
+    }
+    .active-secret-bar { display: none; background-color: #f0f7ff; color: #1c1c1e; padding: 12px 16px; border-radius: 14px; font-size: 14px; font-weight: 700; margin: -10px 0 20px 0; border: 1px solid rgba(0, 122, 255, 0.1); justify-content: center; }
+    .totp-display { font-size: 64px; color: var(--success-color); font-weight: 700; margin: 10px 0; font-variant-numeric: tabular-nums; letter-spacing: 0.15em; }
+    .waiting { color: #d1d1d6; font-size: 32px; }
+    .copy-btn, .next-btn { width: 100%; padding: 15px; border: none; border-radius: 14px; font-weight: 600; cursor: pointer; font-size: 16px; margin-top: 10px; }
+    .copy-btn { background-color: var(--primary-color); color: white; }
+    .next-btn { background-color: #e5e5ea; color: var(--text-main); display: none; }
+    .copy-btn:disabled { background-color: #e5e5ea; }
+    .red-notice { display: none; min-height: 55px; font-size: 14px; margin-bottom: 10px; align-items: center; justify-content: center; }
+    .security-notice { margin-top: 25px; font-size: 13px; color: var(--text-secondary); line-height: 1.6; padding: 15px; border-radius: 16px; background: rgba(255, 59, 48, 0.03); border: 1px dashed var(--error-color); }
+    .download-link { display: inline-flex; align-items: center; justify-content: center; margin-top: 8px; color: var(--primary-color); font-weight: 700; text-decoration: none; cursor: pointer; }
+    #bookmarkHint { display: none; margin-top: 12px; font-size: 12px; color: var(--text-secondary); }
+    .kbd-key { display: inline-block; padding: 1px 5px; margin: 0 2px; font-size: 10px; font-weight: 800; background: #fafafa; border: 1px solid #d1d1d6; border-radius: 4px; box-shadow: 0 1px 0 #c1c1c6; }
+    #imageOverlay { display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: white; border: 2px solid var(--primary-color); border-radius: 12px; align-items: center; padding: 0 12px; z-index: 100; }
+    #imgThumbnail { height: 70%; border-radius: 4px; }
+  </style>
+</head>
+<body>
+
+  <div id="illegalWarning" style="display:block; text-align:center; margin-top:50px;">
+    <h3>⚠️ 运行环境异常</h3>
+    <p>为了数据安全，本页面不支持直接通过浏览器菜单保存。</p>
+    <p>请返回原页面点击红色虚线框内的按钮保存。</p>
+  </div>
+
+  <div id="appContainer">
+    <div class="container">
+      <h2 id="mainHeading">OTP 身份验证器</h2>
+      <h2 id="subHeading"></h2>
+      
+      <div class="input-wrapper">
+        <input type="text" id="secretInput" placeholder="在这里粘贴二维码截图 或 输入密钥" spellcheck="false" />
+        <div id="imageOverlay"><img id="imgThumbnail" alt="缩略图"><span style="margin-left:10px; font-size:12px; color:var(--primary-color); font-weight:600;">识别中...</span></div>
+      </div>
+
+      <div id="activeSecretBar" class="active-secret-bar">🔑 当前有效密钥: <span id="displaySecretValue" style="margin-left:5px;"></span></div>
+      <div id="detectionMsg" class="red-notice"></div>
+      <div class="totp-display waiting" id="totp">等待输入</div>
+      
+      <div id="countdown-area" style="display: none; margin-bottom: 15px;">
+          <span style="color:var(--text-secondary); font-size:15px; font-weight: 600;">更新剩余:</span>
+          <span id="countdown-num" style="color:var(--primary-color); font-weight:bold; font-size:20px; margin-left:8px;">--s</span>
+      </div>
+      
+      <button class="copy-btn" id="copyBtn" onclick="copyTOTP()" disabled>复制验证码</button>
+      <button class="next-btn" id="nextBtn" onclick="incrementHOTP()">下一步计数 (HOTP)</button>
+
+      <div id="downloadZone" class="security-notice">
+        提示：本页面代码在本地浏览器运行，服务器不保存任何信息。<br>
+        <a class="download-link" onclick="downloadPage()">
+          <span id="downloadBtnText">[ 保存当前信息为本地独立 HTML ]</span>
+        </a>
+      </div>
+      <div id="bookmarkHint">使用快捷键 <span class="kbd-key">Ctrl</span> + <span class="kbd-key">D</span> 添加到收藏夹</div>
+    </div>
+  </div>
+
+  <script id="mainScript">
+    // --- 核心防盗逻辑 ---
+    // 标记位：只有通过 downloadPage 函数生成的 HTML 才会将此值改为 true
+    var isAuthorizedExport = false; 
+
+    function checkEnvironment() {
+      const isLocalFile = window.location.protocol === 'file:';
+      // 如果是本地打开，且不是通过我们按钮导出的（授权标记为false），则锁定页面
+      if (isLocalFile && !isAuthorizedExport) {
+        document.getElementById('appContainer').style.display = 'none';
+        document.getElementById('illegalWarning').style.display = 'block';
+        return false;
+      }
+      document.getElementById('appContainer').style.display = 'block';
+      document.getElementById('illegalWarning').style.display = 'none';
+      return true;
+    }
+
+    // 禁用右键和保存快捷键
+    window.addEventListener('contextmenu', e => e.preventDefault());
+    window.addEventListener('keydown', e => {
+      if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')) {
+        e.preventDefault();
+        alert("请使用页面内的保存按钮。");
+      }
+    });
+
+    var injectedParams = null;
+    const secretInput = document.getElementById('secretInput');
+    const totpDisplay = document.getElementById('totp');
+    const copyBtn = document.getElementById('copyBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const mainHeading = document.getElementById('mainHeading');
+    const subHeading = document.getElementById('subHeading');
+    const activeSecretBar = document.getElementById('activeSecretBar');
+    const displaySecretValue = document.getElementById('displaySecretValue');
+    const detectionMsg = document.getElementById('detectionMsg');
+    const bookmarkHint = document.getElementById('bookmarkHint');
+
+    let currentConfig = { type: 'totp', secret: '', counter: 0 };
+    let isJumping = false;
+
+    function getCurrentParams() {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get('secret') ? Object.fromEntries(urlParams) : injectedParams;
+    }
+
+    function downloadPage() {
+      let latestParams = getCurrentParams() || { type: "totp", secret: "ABCDEFGHIJKLMNOP", issuer: "发行商", label: "测试账号" };
+      let docClone = document.documentElement.cloneNode(true);
+      let scriptElement = docClone.querySelector('#mainScript');
+      
+      // 导出时，将标记位设为 true
+      let scriptContent = scriptElement.innerHTML
+        .replace(/var injectedParams = (null|{.*?});/, `var injectedParams = ${JSON.stringify(latestParams)};`)
+        .replace(/var isAuthorizedExport = false;/, `var isAuthorizedExport = true;`);
+
+      scriptElement.innerHTML = scriptContent;
+      const blob = new Blob(["<!DOCTYPE html>\n" + docClone.outerHTML], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = latestParams.issuer ? `OTP_${latestParams.issuer}.html` : 'OTP_Authenticator.html';
+      a.click();
+    }
+
+    // 维持原有逻辑...
+    document.addEventListener('paste', (e) => {
+      const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+      for (const item of items) {
+        if (item.type.indexOf('image') !== -1) {
+          const file = item.getAsFile();
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            document.getElementById('imageOverlay').style.display = 'flex';
+            document.getElementById('imgThumbnail').src = event.target.result;
+            const img = new Image();
+            img.onload = () => {
+              const canvas = document.createElement('canvas');
+              const ctx = canvas.getContext('2d');
+              canvas.width = img.width; canvas.height = img.height;
+              ctx.drawImage(img, 0, 0);
+              const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+              if (typeof jsQR !== 'undefined') {
+                const code = jsQR(imageData.data, canvas.width, canvas.height);
+                if (code) handleResult(code.data);
+                else { showError("图片中未发现二维码"); document.getElementById('imageOverlay').style.display = 'none'; }
+              }
+            };
+            img.src = event.target.result;
+          };
+          reader.readAsDataURL(file);
+        }
+      }
+    });
+
+    function handleResult(content) {
+      const sMatch = content.match(/secret=([A-Z2-7=]+)/i);
+      const secret = sMatch ? sMatch[1].toUpperCase() : (content.match(/[A-Z2-7=]{16,}/i)?.[0].toUpperCase());
+      if (secret) {
+        isJumping = true;
+        const url = new URL(window.location.href);
+        url.searchParams.set('secret', secret);
+        url.searchParams.set('type', content.includes('hotp') ? 'hotp' : 'totp');
+        detectionMsg.style.display = 'flex';
+        detectionMsg.innerHTML = `<b style="color:var(--primary-color)">正在重载...</b>`;
+        setTimeout(() => window.location.href = url.href, 500);
+      }
+    }
+
+    async function updateUI() {
+      if (isJumping || !checkEnvironment()) return;
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlSecret = urlParams.get('secret') || (injectedParams ? injectedParams.secret : null);
+      const inputSecret = secretInput.value.trim();
+      let activeSecret = ""; let activeType = "totp";
+
+      if (inputSecret) {
+        activeSecret = inputSecret.replace(/\s/g, '').toUpperCase();
+        mainHeading.textContent = "手动输入识别"; document.title = "识别中...";
+        bookmarkHint.style.display = 'none';
+      } else if (urlSecret) {
+        activeSecret = urlSecret;
+        const params = urlParams.get('secret') ? urlParams : new URLSearchParams(injectedParams);
+        activeType = params.get('type') || 'totp';
+        const issuer = params.get('issuer'), label = params.get('label');
+        mainHeading.textContent = issuer || "已识别密钥";
+        subHeading.textContent = label || "";
+        document.title = issuer ? `${issuer} - 验证码` : "验证码";
+        bookmarkHint.style.display = 'block';
+      } else {
+        mainHeading.textContent = "OTP 身份验证器"; document.title = "OTP 身份验证器";
+        totpDisplay.textContent = "等待输入"; totpDisplay.classList.add('waiting');
+        copyBtn.disabled = true; activeSecretBar.style.display = 'none'; return;
+      }
+
+      activeSecretBar.style.display = 'flex';
+      displaySecretValue.textContent = activeSecret;
+      try {
+        const key = base32ToBytes(activeSecret);
+        let cv = (activeType === 'hotp') ? currentConfig.counter : Math.floor(Date.now() / 1000 / 30);
+        document.getElementById('countdown-area').style.display = 'block';
+        if (activeType === 'totp') document.getElementById('countdown-num').textContent = (30 - (Math.floor(Date.now() / 1000) % 30)) + "s";
+        const cryptoKey = await crypto.subtle.importKey('raw', key, { name: 'HMAC', hash: 'SHA-1' }, false, ['sign']);
+        const hmac = new Uint8Array(await crypto.subtle.sign('HMAC', cryptoKey, new Uint8Array(8).map((_,i) => (cv >> (56-i*8)) & 0xff)));
+        const offset = hmac[19] & 0xf;
+        const code = ((hmac[offset] & 0x7f) << 24 | (hmac[offset+1] & 0xff) << 16 | (hmac[offset+2] & 0xff) << 8 | (hmac[offset+3] & 0xff)) % 1000000;
+        totpDisplay.textContent = code.toString().padStart(6, '0');
+        totpDisplay.classList.remove('waiting'); copyBtn.disabled = false;
+      } catch (e) { totpDisplay.textContent = "格式无效"; }
+    }
+
+    function base32ToBytes(s) {
+      const alpha = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+      let bits = [...s].map(c => alpha.indexOf(c).toString(2).padStart(5, '0')).join('');
+      return new Uint8Array(bits.match(/.{8}/g).map(b => parseInt(b, 2)));
+    }
+
+    async function copyTOTP() {
+      await navigator.clipboard.writeText(totpDisplay.textContent);
+      const old = copyBtn.textContent; copyBtn.textContent = '✅ 已复制';
+      setTimeout(() => copyBtn.textContent = old, 2000);
+    }
+
+    function showError(msg) {
+      detectionMsg.style.display = 'flex';
+      detectionMsg.innerHTML = `<div style="color:red">❌ ${msg}</div>`;
+      setTimeout(() => { detectionMsg.style.display = 'none'; }, 3000);
+    }
+
+    secretInput.addEventListener('input', updateUI);
+    setInterval(updateUI, 1000);
+    updateUI();
+  </script>
+</body>
+</html>
