@@ -45,11 +45,10 @@
 </head>
 <body>
 
-  <div id="illegalWarning" style="display:block; text-align:center; margin-top:50px;">
-    <h3>⚠️Error</h3>
-    <p>The save page is not not-allowed running in local env.</p>
-    <p>Please use from the original‌ website.</p>
-    <p>download is allowed only at the tips link.</p>
+  <div id="illegalWarning" style="display:none; text-align:center; margin-top:50px; padding: 20px;">
+    <h3>⚠️ Error</h3>
+    <p>The saved page is not allowed to run in local env.</p>
+    <p>Please use the original website or download via the official link.</p>
   </div>
 
   <div id="appContainer">
@@ -91,12 +90,15 @@
 
     function checkEnvironment() {
       const isLocalFile = window.location.protocol === 'file:';
-      // 如果是本地打开，且不是通过我们按钮导出的（授权标记为false），则锁定页面
+      const hasData = !!injectedParams; // 只有导出的文件才会有 injectedParams
+
+      // 逻辑：如果是本地文件，且【没有数据】或者【没有授权标记】，则视为非法保存
       if (isLocalFile && !isAuthorizedExport) {
         document.getElementById('appContainer').style.display = 'none';
         document.getElementById('illegalWarning').style.display = 'block';
         return false;
       }
+      // 否则，正常显示容器
       document.getElementById('appContainer').style.display = 'block';
       document.getElementById('illegalWarning').style.display = 'none';
       return true;
@@ -128,7 +130,10 @@
 
     function getCurrentParams() {
       const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get('secret') ? Object.fromEntries(urlParams) : injectedParams;
+      if (urlParams.get('secret')) {
+        return Object.fromEntries(urlParams);
+      }
+      return injectedParams;
     }
 
     function downloadPage() {
@@ -136,7 +141,7 @@
       let docClone = document.documentElement.cloneNode(true);
       let scriptElement = docClone.querySelector('#mainScript');
       
-      // 导出时，将标记位设为 true
+      // 导出时，将标记位设为 true 并注入数据
       let scriptContent = scriptElement.innerHTML
         .replace(/var injectedParams = (null|{.*?});/, `var injectedParams = ${JSON.stringify(latestParams)};`)
         .replace(/var isAuthorizedExport = false;/, `var isAuthorizedExport = true;`);
@@ -150,7 +155,7 @@
       a.click();
     }
 
-    // 维持原有逻辑...
+    // 识别逻辑保持不变...
     document.addEventListener('paste', (e) => {
       const items = (e.clipboardData || e.originalEvent.clipboardData).items;
       for (const item of items) {
@@ -188,22 +193,33 @@
         const url = new URL(window.location.href);
         url.searchParams.set('secret', secret);
         url.searchParams.set('type', content.includes('hotp') ? 'hotp' : 'totp');
+        // 提取发行商和标签
+        const iMatch = content.match(/issuer=([^&]+)/i);
+        if (iMatch) url.searchParams.set('issuer', decodeURIComponent(iMatch[1]));
+        const labelPart = content.match(/otpauth:\/\/[^/]+\/([^?]+)/i);
+        if (labelPart) url.searchParams.set('label', decodeURIComponent(labelPart[1].split(':').pop()));
+        
         detectionMsg.style.display = 'flex';
-        detectionMsg.innerHTML = `<b style="color:var(--primary-color)">正在重载...</b>`;
+        detectionMsg.innerHTML = `<b style="color:var(--primary-color)">正在识别并重载...</b>`;
         setTimeout(() => window.location.href = url.href, 500);
       }
     }
 
     async function updateUI() {
-      if (isJumping || !checkEnvironment()) return;
+      // 首先进行环境检查，如果失败（非法本地保存），则停止后续所有 UI 逻辑
+      if (!checkEnvironment() || isJumping) return;
+
       const urlParams = new URLSearchParams(window.location.search);
       const urlSecret = urlParams.get('secret') || (injectedParams ? injectedParams.secret : null);
       const inputSecret = secretInput.value.trim();
+      
       let activeSecret = ""; let activeType = "totp";
 
       if (inputSecret) {
         activeSecret = inputSecret.replace(/\s/g, '').toUpperCase();
-        mainHeading.textContent = "手动输入识别"; document.title = "识别中...";
+        mainHeading.textContent = "手动输入识别"; 
+        subHeading.textContent = "";
+        document.title = "识别中...";
         bookmarkHint.style.display = 'none';
       } else if (urlSecret) {
         activeSecret = urlSecret;
@@ -215,9 +231,16 @@
         document.title = issuer ? `${issuer} - 验证码` : "验证码";
         bookmarkHint.style.display = 'block';
       } else {
-        mainHeading.textContent = "OTP 身份验证器"; document.title = "OTP 身份验证器";
-        totpDisplay.textContent = "等待输入"; totpDisplay.classList.add('waiting');
-        copyBtn.disabled = true; activeSecretBar.style.display = 'none'; return;
+        mainHeading.textContent = "OTP 身份验证器"; 
+        subHeading.textContent = "";
+        document.title = "OTP 身份验证器";
+        totpDisplay.textContent = "等待输入"; 
+        totpDisplay.classList.add('waiting');
+        copyBtn.disabled = true; 
+        activeSecretBar.style.display = 'none'; 
+        bookmarkHint.style.display = 'none';
+        document.getElementById('countdown-area').style.display = 'none';
+        return;
       }
 
       activeSecretBar.style.display = 'flex';
@@ -227,19 +250,32 @@
         let cv = (activeType === 'hotp') ? currentConfig.counter : Math.floor(Date.now() / 1000 / 30);
         document.getElementById('countdown-area').style.display = 'block';
         if (activeType === 'totp') document.getElementById('countdown-num').textContent = (30 - (Math.floor(Date.now() / 1000) % 30)) + "s";
+        
         const cryptoKey = await crypto.subtle.importKey('raw', key, { name: 'HMAC', hash: 'SHA-1' }, false, ['sign']);
-        const hmac = new Uint8Array(await crypto.subtle.sign('HMAC', cryptoKey, new Uint8Array(8).map((_,i) => (cv >> (56-i*8)) & 0xff)));
+        const data = new Uint8Array(8);
+        for (let i = 7; i >= 0; i--) { data[i] = cv & 0xff; cv >>= 8; }
+        const hmac = new Uint8Array(await crypto.subtle.sign('HMAC', cryptoKey, data));
         const offset = hmac[19] & 0xf;
         const code = ((hmac[offset] & 0x7f) << 24 | (hmac[offset+1] & 0xff) << 16 | (hmac[offset+2] & 0xff) << 8 | (hmac[offset+3] & 0xff)) % 1000000;
+        
         totpDisplay.textContent = code.toString().padStart(6, '0');
-        totpDisplay.classList.remove('waiting'); copyBtn.disabled = false;
-      } catch (e) { totpDisplay.textContent = "格式无效"; }
+        totpDisplay.classList.remove('waiting'); 
+        copyBtn.disabled = false;
+      } catch (e) { 
+        if(activeSecret.length > 5) totpDisplay.textContent = "格式无效"; 
+      }
     }
 
     function base32ToBytes(s) {
       const alpha = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
-      let bits = [...s].map(c => alpha.indexOf(c).toString(2).padStart(5, '0')).join('');
-      return new Uint8Array(bits.match(/.{8}/g).map(b => parseInt(b, 2)));
+      let bits = "";
+      for (let i = 0; i < s.length; i++) {
+        const val = alpha.indexOf(s[i].toUpperCase());
+        if (val >= 0) bits += val.toString(2).padStart(5, '0');
+      }
+      const bytes = [];
+      for (let i = 0; i + 8 <= bits.length; i += 8) bytes.push(parseInt(bits.substr(i, 8), 2));
+      return new Uint8Array(bytes);
     }
 
     async function copyTOTP() {
@@ -256,6 +292,7 @@
 
     secretInput.addEventListener('input', updateUI);
     setInterval(updateUI, 1000);
+    // 初次运行
     updateUI();
   </script>
 </body>
