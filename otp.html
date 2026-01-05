@@ -3,12 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="author" content="xuezhong.feng">
+  <meta name="copyright" content="Copyright © XUEZHONG">
+  <meta name="description" content="一个安全的本地 OTP 身份验证工具">
   <title>OTP 身份验证器</title>
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
   <style>
     :root {
-      --primary-color: #007aff; --success-color: #34c759; --error-color: #ff3b30;
+      --primary-color: #007aff; 
+      --primary-dark: #005ecb; 
+      --success-color: #34c759; --error-color: #ff3b30;
       --bg-color: #f2f2f7; --card-bg: #ffffff; --text-main: #1c1c1e; --text-secondary: #3a3a3c;
+      --disabled-color: #8e8e93; 
     }
 
     body { 
@@ -24,7 +30,51 @@
       position: relative;
     }
 
-    #mainHeading { font-size: 26px; font-weight: 700; margin-bottom: 20px; word-break: break-all; color: var(--text-main); min-height: 1.2em;}
+    /* --- 书签提示样式 --- */
+    .bookmark-tip {
+      position: absolute;
+      right: 0px;
+      top: -30px;
+      background: rgba(0, 122, 255, 0.95);
+      backdrop-filter: blur(8px);
+      color: white;
+      padding: 5px 16px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 500;
+      display: none; 
+      align-items: center;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+      z-index: 100;
+      white-space: nowrap;
+      letter-spacing: 0.05em;
+    }
+
+    .bookmark-tip::after {
+      content: '';
+      position: absolute;
+      top: -8px;
+      right: 25px;
+      border-left: 8px solid transparent;
+      border-right: 8px solid transparent;
+      border-bottom: 8px solid rgba(0, 122, 255, 0.95);
+    }
+
+    @keyframes bounceTip {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    .close-tip {
+      margin-left: 10px;
+      cursor: pointer;
+      font-size: 16px;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+    .close-tip:hover { opacity: 1; }
+
+    #mainHeading { font-size: 26px; font-weight: 700; margin-bottom: 60px; word-break: break-all; color: var(--text-main); min-height: 1.2em;}
 
     .input-group { position: relative; margin: 20px 0; }
     
@@ -45,6 +95,7 @@
     #secretInput {
       flex: 1; border: none; outline: none; font-family: "Consolas", monospace;
       font-size: 15px; padding: 8px 0; background: transparent; width: 100%;
+      user-select: text; 
     }
 
     #imagePreviewBox {
@@ -62,16 +113,41 @@
 
     .copy-btn, .next-btn { 
       width: 100%; padding: 15px; border: none; border-radius: 14px; 
-      font-weight: 600; cursor: pointer; font-size: 16px; transition: 0.2s; margin-top: 10px;
+      font-weight: 600; cursor: pointer; font-size: 16px; transition: all 0.2s ease; margin-top: 10px;
+      letter-spacing: 0.20em;
     }
     .copy-btn { background: var(--primary-color); color: white; }
+    .copy-btn:not(:disabled):hover { background: var(--primary-dark); }
+    .copy-btn:not(:disabled):active { transform: scale(0.98); }
+    .copy-btn.copied { background: var(--disabled-color) !important; cursor: default; }
+
     .next-btn { background: #e5e5ea; color: var(--text-main); display: none; }
-    .copy-btn:disabled { background: #e5e5ea; cursor: not-allowed; }
+    .copy-btn:disabled { background: #e5e5ea; cursor: not-allowed; opacity: 0.6; }
 
-    #countdown-area { margin-bottom: 15px; font-size: 14px; color: var(--text-secondary); font-weight: 600;}
-    #countdown-num { color: var(--primary-color); font-weight: bold; margin-left: 5px; font-size: 18px;}
+    #countdown-area { 
+      margin-bottom: 15px; font-size: 14px; color: var(--text-secondary); font-weight: 600;
+      letter-spacing: 0.10em; display: flex; align-items: center; justify-content: center;
+    }
+    #countdown-num { 
+      color: var(--primary-color); font-weight: bold; font-size: 18px;
+      font-variant-numeric: tabular-nums; display: inline-block;
+      min-width: 4ch; text-align: right; margin-right: 8px;
+    }
 
-    .privacy-container { margin-top: 30px; border-top: 1px solid #f2f2f7; padding-top: 10px; }
+    #hourglass { 
+      display: inline-block; min-width: 1.2em; font-size: 16px; 
+      will-change: transform, opacity;
+      transition: opacity 1s ease; 
+    }
+    .hg-rotate {
+      animation: rotate-ani 0.5s ease-in-out forwards;
+    }
+    @keyframes rotate-ani {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(180deg); }
+    }
+
+    .privacy-container { margin-top: 30px; border-top: 1px solid #f2f2f7; padding-top: 30px; display: flex; flex-direction: column; align-items: center;}
     
     .ai-btn {
       position: relative; padding: 2px; background: transparent; border: none;
@@ -79,11 +155,14 @@
       justify-content: center; overflow: hidden; transition: transform 0.2s; outline: none;
     }
     .ai-btn:active { transform: scale(0.96); }
-
     .ai-content {
-      background: #ffffff; color: #ea4335; padding: 6px 18px; border-radius: 100px;
-      font-size: 13px; font-weight: 700; z-index: 2; transition: background 0.3s;
+      height: 40px;
+      background: #ffffff; color: var(--primary-color); padding: 6px 18px; 
+      border-radius: 100px; font-size: 13px; font-weight: 700; z-index: 2; transition: color 0.3s;
+      letter-spacing: 0.12em;
+      display: flex; align-items: center;
     }
+    .ai-btn:hover .ai-content { color: var(--error-color); }
 
     .ai-orbit {
       position: absolute; top: 0; left: 0; right: 0; bottom: 0;
@@ -95,35 +174,52 @@
 
     .ai-gradient {
       position: absolute; width: 180%; height: 180%; top: -40%; left: -40%;
-      background: conic-gradient(
-        from var(--random-start, 0deg) at 50% 50%, 
-        #4285f4 0deg, 
-        #ffffff 24deg, 
-        #ffffff 64deg, 
-        #34a853 100deg, 
-        #fbbc05 160deg, 
-        #ea4335 200deg, 
-        #4285f4 240deg, 
-        #4285f4 360deg
-      );
-      transform: rotate(0deg);
+      background: conic-gradient(from var(--random-start, 0deg) at 50% 50%, #4285f4 0deg, #ffffff 24deg, #ffffff 64deg, #34a853 100deg, #fbbc05 160deg, #ea4335 200deg, #4285f4 240deg, #4285f4 360deg);
     }
-
     .ai-running .ai-gradient { animation: ai-rotate 1.5s linear infinite; }
     @keyframes ai-rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-    .security-notice { display: none; text-align: left; font-size: 13px; color: var(--text-secondary); line-height: 1.6; padding: 20px; margin-top: 15px; background: #f9f9fb; border-radius: 16px; border: 1px solid #eee; }
+    .security-notice { 
+      display: none; text-align: left; font-size: 13px; color: var(--text-secondary); 
+      line-height: 1.6; padding: 20px; margin-top: 30px; background: #f9f9fb; 
+      border-radius: 16px; border: 1px solid #eee; width: 100%; box-sizing: border-box; overflow: hidden;
+    }
     .security-notice.active { display: block; }
+
+    @keyframes flyInLeft { from { opacity: 0; transform: translateX(-80px); } to { opacity: 1; transform: translateX(0); } }
+    @keyframes flyInRight { from { opacity: 0; transform: translateX(80px); } to { opacity: 1; transform: translateX(0); } }
+    .info-line { opacity: 0; }
+    .security-notice.active .info-line:nth-child(odd) { animation: flyInLeft 0.6s ease-out forwards; }
+    .security-notice.active .info-line:nth-child(even) { animation: flyInRight 0.6s ease-out forwards; }
+    .security-notice.active .info-line:nth-child(1) { animation-delay: 0.1s; }
+    .security-notice.active .info-line:nth-child(2) { animation-delay: 0.25s; }
+    .security-notice.active .info-line:nth-child(3) { animation-delay: 0.4s; }
+
     .kbd-key { display: inline-block; padding: 1px 5px; margin: 0 2px; font-family: "Arial", sans-serif; font-size: 10px; font-weight: 600; color: var(--primary-color); background: #fafafa; border: 1px solid #d1d1d6; border-radius: 4px; }
+
+    #downloadBtn {
+      cursor: pointer; font-size: 28px; transition: all 0.3s ease; 
+      display: inline-flex; align-items: center; justify-content: center; 
+      width: 44px; height: 44px; border-radius: 10px; filter: brightness(1);
+    }
+    #downloadBtn.downloaded {
+      font-size: 13px; font-weight: 700; color: var(--success-color);
+      width: auto; padding: 0 10px; cursor: default; filter: none;
+    }
   </style>
 </head>
 <body>
 
   <div class="container">
+    <div class="bookmark-tip" id="bookmarkTip">
+      📌 强烈建议收藏此页面到书签。<span class="kbd-key">Ctrl</span> + <span class="kbd-key">D</span>可快捷收藏。
+      <span class="close-tip" onclick="this.parentElement.style.display='none'">×</span>
+    </div>
+
     <h2 id="mainHeading">OTP 身份验证器</h2>
     
     <div class="input-group">
-      <div id="errorToast">二维码中未识别到有效密钥</div>
+      <div id="errorToast">粘贴的图片中未识别到有效密钥</div>
       <div class="input-container">
         <div id="imagePreviewBox">
           <img id="imgThumbnail">
@@ -134,7 +230,7 @@
     </div>
 
     <div id="countdown-area" style="display: none;">
-      验证码更新剩余: <span id="countdown-num">--s</span>
+      验证码更新剩余: <span id="countdown-num">--s</span><span id="hourglass">⌛</span>
     </div>
 
     <div class="totp-display waiting" id="totp">等待输入</div>
@@ -142,28 +238,28 @@
     <button class="copy-btn" id="copyBtn" onclick="copyTOTP()" disabled>复制验证码</button>
     <button class="next-btn" id="nextBtn" onclick="incrementHOTP()">下一步计数 (HOTP)</button>
 
-    <div class="privacy-container">
+    <div class="privacy-container" id="privacyRoot">
       <button type="button" class="ai-btn" id="privacyTrigger">
           <div class="ai-orbit"><div class="ai-gradient"></div></div>
-          <div class="ai-content"><span id="triggerText">服务器不保存任何信息声明</span></div>
+          <div class="ai-content"><span>&emsp;&emsp;服务器不保存任何信息声明&emsp;&emsp;</span></div>
       </button>
       
       <div id="downloadZone" class="security-notice">
-        <div style="font-size: 13px; line-height: 1.8; color: var(--text-secondary);">
-          1、<span style="color:var(--error-color); font-weight:600;">服务器不保存任何信息</span>，所有解析与计算均在本地浏览器完成。<br>
-          2、数据仅通过 URL 锚点 (#) 存在本地，不会发送至服务器日志。<br>
-          3、支持离线使用。使用 <span class="kbd-key">Ctrl</span> + <span class="kbd-key">D</span> 即可收藏当前页面。
+        <div style="font-size: 13px; line-height: 2.2; color: var(--text-secondary);">
+          <div class="info-line" style="margin-bottom: 8px;">1、<span style="color:var(--error-color); font-weight:600;">服务器不保存任何信息</span>，所有解析与计算均在本地浏览器完成。</div>
+          <div class="info-line" style="margin-bottom: 8px;">2、数据仅通过 URL 锚点 (#) 临时加载，不会发送至服务器日志。</div>
+          <div class="info-line">3、支持离线使用。使用 <span class="kbd-key">Ctrl</span> + <span class="kbd-key">D</span> 即可收藏当前页面。</div>
         </div>
         <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 15px; padding-top: 12px; border-top: 1px dashed #ddd;">
-          <span style="color: var(--text-main); font-weight: 600; font-size: 13px;">点击右边保存图标，可以保存当前页面到本地使用</span>
-          <a onclick="downloadPage()" style="cursor: pointer; font-size: 28px;">💾</a>
+          <span id="downloadText" style="color: var(--text-main); font-weight: 600; font-size: 13px; transition: opacity 0.3s;">点击右边图标保存当前页面到本地离线使用</span>
+          <span id="downloadBtn" onclick="downloadPage()">💾</span>
         </div>
       </div>
     </div>
   </div>
 
   <script id="mainScript">
-    var injectedParams = null; 
+    var injectedParams = null;
     const secretInput = document.getElementById('secretInput');
     const totpDisplay = document.getElementById('totp');
     const copyBtn = document.getElementById('copyBtn');
@@ -172,123 +268,106 @@
     const previewBox = document.getElementById('imagePreviewBox');
     const imgThumbnail = document.getElementById('imgThumbnail');
     const errorToast = document.getElementById('errorToast');
+    const hourglass = document.getElementById('hourglass');
+    const bookmarkTip = document.getElementById('bookmarkTip');
+
+    let currentConfig = { secret: "", type: "totp", issuer: "", label: "", counter: 0 };
+    // let isHgAnimating = false; // 不再需要锁定变量
+
+    function stepHourglass() {
+      // 每次调用重置动画，使其与秒数同步
+      hourglass.classList.remove('hg-rotate');
+      void hourglass.offsetWidth; // 触发 Reflow 以重启 CSS 动画
+      hourglass.classList.add('hg-rotate');
+      
+      // 在动画中间切换图标
+      setTimeout(() => {
+        hourglass.textContent = (hourglass.textContent === "⌛") ? "⏳" : "⌛";
+        hourglass.style.opacity = '1';
+      }, 250); 
+    }
+
     const trigger = document.getElementById('privacyTrigger');
     const notice = document.getElementById('downloadZone');
     const aiGradient = document.querySelector('.ai-gradient');
 
-    let currentConfig = { secret: "", type: "totp", issuer: "", label: "", counter: 0 };
-
-    // --- 动画逻辑 ---
-    function setRandomAngle() {
-      aiGradient.style.setProperty('--random-start', `${Math.floor(Math.random() * 360)}deg`);
-    }
+    function setRandomAngle() { if(aiGradient) aiGradient.style.setProperty('--random-start', `${Math.floor(Math.random() * 360)}deg`); }
     function runAiAnimation() {
+      if(!trigger) return;
       trigger.classList.remove('ai-running');
-      void trigger.offsetWidth; 
+      void trigger.offsetWidth;
       trigger.classList.add('ai-running');
-      setTimeout(() => { trigger.classList.remove('ai-running'); setRandomAngle(); }, 1500);
+      setTimeout(() => { if(trigger) trigger.classList.remove('ai-running'); setRandomAngle(); }, 1500);
     }
-    setRandomAngle();
-    window.addEventListener('load', () => setTimeout(runAiAnimation, 800));
-    trigger.addEventListener('mouseenter', runAiAnimation);
-    trigger.addEventListener('click', () => { notice.classList.toggle('active'); runAiAnimation(); });
 
-    // --- 业务辅助 ---
-    function getCurrentParams() {
-      return (currentConfig && currentConfig.secret) ? currentConfig : null;
+    if(trigger && notice) {
+      setRandomAngle();
+      window.addEventListener('load', () => setTimeout(runAiAnimation, 800));
+      trigger.addEventListener('mouseenter', () => {
+        if (!notice.classList.contains('active')) {
+          notice.classList.add('active');
+        }
+        runAiAnimation();
+      });
+      trigger.addEventListener('click', () => {
+        notice.classList.toggle('active');
+        runAiAnimation();
+      });
     }
 
     function downloadPage() {
-      let latestParams = getCurrentParams();
-      // 如果当前为空，写入一个演示用的示例密钥
-      if (!latestParams) {
-        latestParams = { type: "totp", secret: "JBSWY3DPEHPK3PXP", issuer: "演示示例", label: "ExampleUser" };
-      }
-      
+      const dlBtn = document.getElementById('downloadBtn');
+      const dlText = document.getElementById('downloadText');
+      if (dlBtn.classList.contains('downloaded')) return;
+      let latestParams = (currentConfig && currentConfig.secret) ? currentConfig : { type: "totp", secret: "ABCDEFGHIJKLMNOP", issuer: "演示示例", label: "ExampleUser" };
       let docClone = document.documentElement.cloneNode(true);
-      // 清理：关闭展开的声明框
-      const cloneNotice = docClone.querySelector('#downloadZone');
-      if (cloneNotice) cloneNotice.classList.remove('active');
-      
+      const pRoot = docClone.querySelector('#privacyRoot');
+      if (pRoot) pRoot.remove();
+      const bTip = docClone.querySelector('#bookmarkTip');
+      if (bTip) bTip.remove();
       let scriptElement = docClone.querySelector('#mainScript');
       const paramsJson = JSON.stringify(latestParams);
-      
-      // 关键：将参数注入到克隆页面的脚本变量中
-      scriptElement.innerHTML = scriptElement.innerHTML.replace(
-        /var injectedParams = (null|{.*?});/, 
-        `var injectedParams = ${paramsJson};`
-      );
-      
+      scriptElement.innerHTML = scriptElement.innerHTML.replace(/var injectedParams = (null|{.*?});/, `var injectedParams = ${paramsJson};`);
       const htmlContent = "<!DOCTYPE html>\n" + docClone.outerHTML;
       const blob = new Blob([htmlContent], { type: 'text/html' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      const fileName = (latestParams.issuer && latestParams.issuer !== "演示示例") ? `OTP_${latestParams.issuer}.html` : 'OTP_Authenticator.html';
-      a.download = fileName;
+      a.download = (latestParams.issuer && latestParams.issuer !== "演示示例") ? `OTP_${latestParams.issuer}.html` : 'OTP_Authenticator.html';
       a.click();
+      dlBtn.textContent = '已下载';
+      dlBtn.classList.add('downloaded');
+      if(dlText) dlText.style.opacity = '0.4';
     }
 
-    // --- 核心解析逻辑 ---
-    function parseOtpAuth(content) {
-      if (!content.toLowerCase().startsWith('otpauth://')) return false;
-      try {
-        const secretMatch = content.match(/secret=([a-z2-7=]+)/i);
-        if (!secretMatch) return false;
-        currentConfig.secret = secretMatch[1].toUpperCase();
-        const issuerMatch = content.match(/issuer=([^&]+)/i);
-        currentConfig.issuer = issuerMatch ? decodeURIComponent(issuerMatch[1]).replace(/\+/g, ' ') : "";
-        currentConfig.type = content.toLowerCase().includes('/hotp/') ? 'hotp' : 'totp';
-        const labelMatch = content.match(/otpauth:\/\/[^\/]+\/([^?]+)/i);
-        if (labelMatch) {
-            let labelText = decodeURIComponent(labelMatch[1]).replace(/\+/g, ' ');
-            if (labelText.includes('secret=') || labelText.includes('issuer=')) {
-                currentConfig.label = "";
-            } else {
-                currentConfig.label = labelText.includes(':') ? labelText.split(':')[1].trim() : labelText.trim();
-            }
-        } else { currentConfig.label = ""; }
-        secretInput.value = currentConfig.secret;
-        return true;
-      } catch (e) { return false; }
-    }
-
-    function updateUrlHash() {
-      if (!currentConfig.secret) { window.history.replaceState(null, "", window.location.pathname); return; }
-      const params = new URLSearchParams();
-      params.set('secret', currentConfig.secret);
-      params.set('type', currentConfig.type);
-      if (currentConfig.issuer) params.set('issuer', currentConfig.issuer);
-      if (currentConfig.label) params.set('label', currentConfig.label);
-      if (currentConfig.counter) params.set('counter', currentConfig.counter);
-      window.history.replaceState(null, "", "#" + params.toString());
-    }
-
-    function updateHeadingAndTitle() {
-      let { issuer, label, secret } = currentConfig;
-      let displayHeading = "OTP 身份验证器";
-      if (issuer && label) displayHeading = (issuer.toLowerCase() === label.toLowerCase()) ? issuer : `${issuer} (${label})`;
-      else if (issuer || label) displayHeading = issuer || label;
-      else if (secret) displayHeading = "已识别密钥";
-      mainHeading.textContent = displayHeading;
-      document.title = secret ? displayHeading : "OTP 身份验证器";
-    }
+    let lastEpoch = 0; // 记录上一秒，防止重复计算
 
     async function calculate() {
-      if (!currentConfig.secret || currentConfig.secret.length < 8) { resetUI(); return; }
+      if (!currentConfig.secret || currentConfig.secret.length < 4) { resetUI(); return; }
+      
+      let epoch = Math.floor(Date.now() / 1000);
+      
+      // 优化：只有秒数变化时才更新界面，避免频闪和跳秒
+      if (epoch === lastEpoch) return;
+      lastEpoch = epoch;
+
       try {
         const key = base32ToBytes(currentConfig.secret);
-        let epoch = Math.floor(Date.now() / 1000);
-        let cv = (currentConfig.type === 'hotp') ? currentConfig.counter : Math.floor(epoch / 30);
-        document.getElementById('countdown-area').style.display = 'block';
+        
+        stepHourglass(); // 秒数更新，触发沙漏
+        
+        const countArea = document.getElementById('countdown-area');
+        const countNum = document.getElementById('countdown-num');
+        if(countArea) countArea.style.display = 'flex';
         if (currentConfig.type === 'totp') {
-          document.getElementById('countdown-num').textContent = (30 - (epoch % 30)) + "s";
+          if(countNum) countNum.textContent = (30 - (epoch % 30)) + "s";
           nextBtn.style.display = 'none';
         } else {
-          document.getElementById('countdown-num').textContent = currentConfig.counter;
+          if(countNum) countNum.textContent = currentConfig.counter;
           nextBtn.style.display = 'block';
         }
         const data = new Uint8Array(8);
+        let cv = (currentConfig.type === 'hotp') ? currentConfig.counter : Math.floor(epoch / 30);
         for (let i = 7; i >= 0; i--) { data[i] = cv & 0xff; cv >>= 8; }
         const cryptoKey = await crypto.subtle.importKey('raw', key, { name: 'HMAC', hash: 'SHA-1' }, false, ['sign']);
         const hmac = new Uint8Array(await crypto.subtle.sign('HMAC', cryptoKey, data));
@@ -296,38 +375,9 @@
         const code = ((hmac[offset] & 0x7f) << 24 | (hmac[offset+1] & 0xff) << 16 | (hmac[offset+2] & 0xff) << 8 | (hmac[offset+3] & 0xff)) % 1000000;
         totpDisplay.textContent = code.toString().padStart(6, '0');
         totpDisplay.classList.remove('waiting');
-        copyBtn.disabled = false;
+        if (!copyBtn.classList.contains('copied')) copyBtn.disabled = false;
       } catch (e) { resetUI(); }
     }
-
-    secretInput.addEventListener('input', (e) => {
-      const val = e.target.value.trim();
-      if (val.toLowerCase().startsWith('otpauth://')) parseOtpAuth(val);
-      else { currentConfig.secret = val.toUpperCase().replace(/\s/g, ''); currentConfig.type = "totp"; currentConfig.issuer = ""; currentConfig.label = ""; }
-      saveAndRender();
-    });
-
-    document.addEventListener('paste', (e) => {
-      const item = Array.from(e.clipboardData.items).find(i => i.type.includes('image'));
-      if (item) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          const img = new Image();
-          img.onload = () => {
-            const cvs = document.createElement('canvas');
-            cvs.width = img.width; cvs.height = img.height;
-            const ctx = cvs.getContext('2d');
-            ctx.drawImage(img, 0, 0);
-            const qr = jsQR(ctx.getImageData(0, 0, cvs.width, cvs.height).data, cvs.width, cvs.height);
-            if (qr && parseOtpAuth(qr.data)) {
-                imgThumbnail.src = event.target.result; previewBox.style.display = 'flex'; saveAndRender();
-            }
-          };
-          img.src = event.target.result;
-        };
-        reader.readAsDataURL(item.getAsFile());
-      }
-    });
 
     function base32ToBytes(s) {
       const alpha = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
@@ -341,42 +391,144 @@
       return new Uint8Array(bytes);
     }
 
-    function resetUI() {
-      totpDisplay.textContent = "等待输入"; totpDisplay.classList.add('waiting');
-      copyBtn.disabled = true; document.getElementById('countdown-area').style.display = 'none';
-      updateHeadingAndTitle();
+    function parseOtpAuth(content) {
+      if (!content.toLowerCase().startsWith('otpauth://')) return false;
+      try {
+        const secretMatch = content.match(/secret=([a-z2-7=]+)/i);
+        if (!secretMatch) return false;
+        currentConfig.secret = secretMatch[1].toUpperCase();
+        const issuerMatch = content.match(/issuer=([^&]+)/i);
+        currentConfig.issuer = issuerMatch ? decodeURIComponent(issuerMatch[1]).replace(/\+/g, ' ') : "";
+        currentConfig.type = content.toLowerCase().includes('/hotp/') ? 'hotp' : 'totp';
+        const labelMatch = content.match(/otpauth:\/\/[^\/]+\/([^?]+)/i);
+        if (labelMatch) {
+            let labelText = decodeURIComponent(labelMatch[1]).replace(/\+/g, ' ');
+            currentConfig.label = labelText.includes(':') ? labelText.split(':')[1].trim() : labelText.trim();
+        }
+        updateSecretInputDisplay();
+        return true;
+      } catch (e) { return false; }
     }
 
+    function updateUrlHash() {
+      if (!currentConfig.secret) { window.history.replaceState(null, "", window.location.pathname); return; }
+      try {
+        const jsonStr = JSON.stringify(currentConfig);
+        const b64 = btoa(unescape(encodeURIComponent(jsonStr)));
+        window.history.replaceState(null, "", "#" + b64);
+      } catch(e) {}
+    }
+
+    function updateHeadingAndTitle() {
+      let { issuer, label, secret } = currentConfig;
+      let displayHeading = "OTP 身份验证器";
+      if (issuer && label) displayHeading = (issuer.toLowerCase() === label.toLowerCase()) ? issuer : `${issuer} (${label})`;
+      else if (issuer || label) displayHeading = issuer || label;
+      mainHeading.textContent = displayHeading;
+      document.title = secret ? displayHeading : "OTP 身份验证器";
+    }
+
+    function updateSecretInputDisplay() {
+      if (currentConfig.secret && currentConfig.secret.length >= 8) {
+        const s = currentConfig.secret;
+        secretInput.value = s.substring(0, 4) + "********" + s.substring(s.length - 4);
+      } else {
+        secretInput.value = currentConfig.secret;
+      }
+    }
+
+    secretInput.addEventListener('focus', function() { this.value = currentConfig.secret; });
+    secretInput.addEventListener('blur', function() { updateSecretInputDisplay(); });
+
+    secretInput.addEventListener('input', (e) => {
+      const val = e.target.value.trim();
+      if (val.toLowerCase().startsWith('otpauth://')) { parseOtpAuth(val); }
+      else if (!val.includes('*')) {
+          currentConfig.secret = val.toUpperCase().replace(/\s/g, '');
+          currentConfig.type = "totp"; currentConfig.issuer = ""; currentConfig.label = "";
+      }
+      saveAndRender();
+    });
+
+    document.addEventListener('paste', (e) => {
+      const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+      for (let item of items) {
+        if (item.type.indexOf('image') !== -1) {
+          const file = item.getAsFile();
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            const img = new Image();
+            img.onload = () => {
+              const cvs = document.createElement('canvas');
+              cvs.width = img.width; cvs.height = img.height;
+              const ctx = cvs.getContext('2d');
+              ctx.drawImage(img, 0, 0);
+              const qr = jsQR(ctx.getImageData(0, 0, cvs.width, cvs.height).data, cvs.width, cvs.height);
+              if (qr && parseOtpAuth(qr.data)) {
+                  imgThumbnail.src = event.target.result; previewBox.style.display = 'flex'; saveAndRender();
+                  bookmarkTip.style.display = 'flex';
+                  bookmarkTip.style.animation = 'bounceTip 2s infinite';
+                  setTimeout(() => {
+                    bookmarkTip.style.display = 'none';
+                  }, 20000);
+              } else {
+                  showError();
+              }
+            };
+            img.src = event.target.result;
+          };
+          reader.readAsDataURL(file);
+        }
+      }
+    });
+
+    function showError() { errorToast.classList.add('show'); setTimeout(() => errorToast.classList.remove('show'), 3000); }
+    function resetUI() { totpDisplay.textContent = "等待输入"; totpDisplay.classList.add('waiting'); copyBtn.disabled = true; const area = document.getElementById('countdown-area'); if(area) area.style.display = 'none'; updateHeadingAndTitle(); }
     function clearImage() { previewBox.style.display = 'none'; imgThumbnail.src = ""; }
-
-    function saveAndRender() {
-      localStorage.setItem('otp_secret', currentConfig.secret);
-      updateUrlHash(); updateHeadingAndTitle(); calculate();
-    }
+    function saveAndRender() { localStorage.setItem('otp_secret', currentConfig.secret); updateUrlHash(); updateHeadingAndTitle(); calculate(); }
 
     async function copyTOTP() {
+      if (copyBtn.classList.contains('copied')) return;
       await navigator.clipboard.writeText(totpDisplay.textContent);
-      copyBtn.textContent = '✅ 已复制';
-      setTimeout(() => copyBtn.textContent = '复制验证码', 2000);
+      copyBtn.textContent = '✅ 已复制'; copyBtn.classList.add('copied'); copyBtn.disabled = true;
+      setTimeout(() => { copyBtn.textContent = '复制验证码'; copyBtn.classList.remove('copied'); if (!totpDisplay.classList.contains('waiting')) copyBtn.disabled = false; }, 2000);
     }
 
     function incrementHOTP() { currentConfig.counter++; saveAndRender(); }
 
+    function enableSecurityBlock() {
+      document.addEventListener('contextmenu', e => e.preventDefault());
+      document.addEventListener('keydown', e => {
+        if (e.key === 'F12') e.preventDefault();
+        if ((e.ctrlKey || e.metaKey) && ['s', 'u', 'p'].includes(e.key.toLowerCase())) e.preventDefault();
+      });
+    }
+
     function init() {
-      let params = new URLSearchParams(window.location.hash.substring(1));
-      let secret = params.get('secret') || (injectedParams?.secret) || localStorage.getItem('otp_secret');
+      enableSecurityBlock();
+      let secret = "";
+      const hash = window.location.hash.substring(1);
+      if (hash) {
+        try {
+          const decoded = JSON.parse(decodeURIComponent(escape(atob(hash))));
+          currentConfig = {...currentConfig, ...decoded};
+          secret = currentConfig.secret;
+        } catch(e) { let params = new URLSearchParams(hash); secret = params.get('secret'); }
+      }
+      secret = secret || (injectedParams?.secret) || localStorage.getItem('otp_secret');
       if (secret) {
         currentConfig.secret = secret.toUpperCase();
-        currentConfig.type = params.get('type') || (injectedParams?.type) || 'totp';
-        currentConfig.issuer = params.get('issuer') || (injectedParams?.issuer) || '';
-        currentConfig.label = params.get('label') || (injectedParams?.label) || '';
-        currentConfig.counter = parseInt(params.get('counter')) || (injectedParams?.counter) || 0;
-        secretInput.value = currentConfig.secret;
+        currentConfig.type = (injectedParams?.type) || currentConfig.type;
+        currentConfig.issuer = (injectedParams?.issuer) || currentConfig.issuer;
+        currentConfig.label = (injectedParams?.label) || currentConfig.label;
+        currentConfig.counter = (injectedParams?.counter) || currentConfig.counter;
+        updateSecretInputDisplay();
         saveAndRender();
       }
     }
 
-    setInterval(calculate, 1000);
+    // 提高定时器频率到 200ms，配合 calculate 中的 lastEpoch 判断，实现精确的整秒跳动
+    setInterval(calculate, 200);
     init();
   </script>
 </body>
