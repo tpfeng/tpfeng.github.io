@@ -105,11 +105,19 @@
     #imgThumbnail { height: 32px; width: 32px; object-fit: cover; border-radius: 4px; }
     .remove-img { color: var(--error-color); margin-left: 6px; cursor: pointer; font-weight: bold; font-size: 18px; line-height: 1; }
 
-    .totp-display { 
+    .totp-display {
       font-size: 64px; color: var(--success-color); font-weight: 700; margin: 20px 0; 
       font-variant-numeric: tabular-nums; letter-spacing: 0.1em;
+      transition: color 0.3s ease;
+    }
+    .totp-next {
+      font-size: 36px; color: var(--success-color); font-weight: 600; margin: 10px 0; 
+      font-variant-numeric: tabular-nums; letter-spacing: 0.08em;
     }
     .waiting { color: #d1d1d6; font-size: 32px; }
+    .totp-display.warning {
+      color: var(--error-color);
+    }
 
     .copy-btn, .next-btn { 
       width: 100%; padding: 15px; border: none; border-radius: 14px; 
@@ -132,19 +140,69 @@
       color: var(--primary-color); font-weight: bold; font-size: 18px;
       font-variant-numeric: tabular-nums; display: inline-block;
       min-width: 4ch; text-align: right; margin-right: 8px;
+      transition: color 0.3s ease;
+    }
+    #countdown-num.warning {
+      color: var(--error-color);
     }
 
-    #hourglass { 
-      display: inline-block; min-width: 1.2em; font-size: 16px; 
-      will-change: transform, opacity;
-      transition: opacity 1s ease; 
+    /* 时钟样式进度条 */
+    .progress-ring-container {
+      position: relative;
+      width: 20px;
+      height: 20px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: 8px;
     }
-    .hg-rotate {
-      animation: rotate-ani 0.5s ease-in-out forwards;
+    .clock-face {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--card-bg);
+      border: 3px solid var(--primary-color);
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.1);
+      z-index: 1;
     }
-    @keyframes rotate-ani {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(180deg); }
+    .clock-hand-minute {
+      position: absolute;
+      width: 3px;
+      height: 8px;
+      background: var(--primary-color);
+      left: 50%;
+      top: 2px;
+      transform-origin: bottom center;
+      transform: translateX(-50%) rotate(0deg);
+      transition: transform 2s linear, background 0.3s ease;
+      border-radius: 1.5px;
+      z-index: 3;
+    }
+    .clock-hand-hour {
+      position: absolute;
+      width: 3px;
+      height: 6px;
+      background: var(--primary-color);
+      left: 50%;
+      top: 4px;
+      transform-origin: bottom center;
+      transform: translateX(-50%) rotate(0deg);
+      transition: transform 2s linear, background 0.3s ease;
+      border-radius: 1.5px;
+      z-index: 2;
+    }
+    .clock-center {
+      position: absolute;
+      width: 3px;
+      height: 3px;
+      background: var(--primary-color);
+      border-radius: 50%;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 4;
+      transition: background 0.3s ease;
     }
 
     .privacy-container { margin-top: 30px; border-top: 1px solid #f2f2f7; padding-top: 30px; display: flex; flex-direction: column; align-items: center;}
@@ -230,12 +288,20 @@
     </div>
 
     <div id="countdown-area" style="display: none;">
-      验证码更新剩余: <span id="countdown-num">--s</span><span id="hourglass">⌛</span>
+      验证码更新剩余: <span id="countdown-num">--s</span>
+      <div class="progress-ring-container">
+        <div class="clock-face"></div>
+        <div class="clock-hand-minute" id="clockMinute"></div>
+        <div class="clock-hand-hour" id="clockHour"></div>
+        <div class="clock-center"></div>
+      </div>
     </div>
 
     <div class="totp-display waiting" id="totp">等待输入</div>
+    <div class="totp-next" id="nextTotp"></div>
     
-    <button class="copy-btn" id="copyBtn" onclick="copyTOTP()" disabled>复制验证码</button>
+    <button class="copy-btn" id="copyCurrentBtn" onclick="copyCurrentOnly()" disabled>仅复制当前验证码</button>
+    <button class="copy-btn" id="copyBothBtn" onclick="copyBoth()" disabled style="margin-top: 8px;">复制当前及下一验证码</button>
     <button class="next-btn" id="nextBtn" onclick="incrementHOTP()">下一步计数 (HOTP)</button>
 
     <div class="privacy-container" id="privacyRoot">
@@ -262,30 +328,19 @@
     var injectedParams = null;
     const secretInput = document.getElementById('secretInput');
     const totpDisplay = document.getElementById('totp');
-    const copyBtn = document.getElementById('copyBtn');
+    const nextTotpDisplay = document.getElementById('nextTotp');
+    const copyCurrentBtn = document.getElementById('copyCurrentBtn');
+    const copyBothBtn = document.getElementById('copyBothBtn');
     const nextBtn = document.getElementById('nextBtn');
     const mainHeading = document.getElementById('mainHeading');
     const previewBox = document.getElementById('imagePreviewBox');
     const imgThumbnail = document.getElementById('imgThumbnail');
     const errorToast = document.getElementById('errorToast');
-    const hourglass = document.getElementById('hourglass');
+    const clockMinute = document.getElementById('clockMinute');
+    const clockHour = document.getElementById('clockHour');
     const bookmarkTip = document.getElementById('bookmarkTip');
 
     let currentConfig = { secret: "", type: "totp", issuer: "", label: "", counter: 0 };
-    // let isHgAnimating = false; // 不再需要锁定变量
-
-    function stepHourglass() {
-      // 每次调用重置动画，使其与秒数同步
-      hourglass.classList.remove('hg-rotate');
-      void hourglass.offsetWidth; // 触发 Reflow 以重启 CSS 动画
-      hourglass.classList.add('hg-rotate');
-      
-      // 在动画中间切换图标
-      setTimeout(() => {
-        hourglass.textContent = (hourglass.textContent === "⌛") ? "⏳" : "⌛";
-        hourglass.style.opacity = '1';
-      }, 250); 
-    }
 
     const trigger = document.getElementById('privacyTrigger');
     const notice = document.getElementById('downloadZone');
@@ -340,42 +395,106 @@
       if(dlText) dlText.style.opacity = '0.4';
     }
 
-    let lastEpoch = 0; // 记录上一秒，防止重复计算
+    let lastEpoch = 0;
+
+    async function calculateTOTP(key, counter) {
+      const data = new Uint8Array(8);
+      let cv = counter;
+      for (let i = 7; i >= 0; i--) { data[i] = cv & 0xff; cv >>= 8; }
+      const cryptoKey = await crypto.subtle.importKey('raw', key, { name: 'HMAC', hash: 'SHA-1' }, false, ['sign']);
+      const hmac = new Uint8Array(await crypto.subtle.sign('HMAC', cryptoKey, data));
+      const offset = hmac[hmac.length - 1] & 0xf;
+      const code = ((hmac[offset] & 0x7f) << 24 | (hmac[offset+1] & 0xff) << 16 | (hmac[offset+2] & 0xff) << 8 | (hmac[offset+3] & 0xff)) % 1000000;
+      return code.toString().padStart(6, '0');
+    }
 
     async function calculate() {
       if (!currentConfig.secret || currentConfig.secret.length < 4) { resetUI(); return; }
       
       let epoch = Math.floor(Date.now() / 1000);
       
-      // 优化：只有秒数变化时才更新界面，避免频闪和跳秒
       if (epoch === lastEpoch) return;
       lastEpoch = epoch;
 
       try {
         const key = base32ToBytes(currentConfig.secret);
         
-        stepHourglass(); // 秒数更新，触发沙漏
-        
         const countArea = document.getElementById('countdown-area');
         const countNum = document.getElementById('countdown-num');
         if(countArea) countArea.style.display = 'flex';
+        
         if (currentConfig.type === 'totp') {
-          if(countNum) countNum.textContent = (30 - (epoch % 30)) + "s";
+          const remainingSeconds = 30 - (epoch % 30);
+          if(countNum) {
+            countNum.textContent = remainingSeconds + "s";
+            // 剩余时间 <= 10秒时变红
+            if (remainingSeconds <= 10) {
+              countNum.classList.add('warning');
+            } else {
+              countNum.classList.remove('warning');
+            }
+          }
           nextBtn.style.display = 'none';
+          
+          // 更新时钟指针（30秒走一圈，即每秒12度）
+          const degrees = (30 - remainingSeconds) * 12; // 从0度开始顺时针旋转
+          const color = remainingSeconds <= 10 ? 'var(--error-color)' : 'var(--primary-color)';
+          
+          if (clockMinute) {
+            clockMinute.style.transform = `translateX(-50%) rotate(${degrees}deg)`;
+            clockMinute.style.background = color;
+          }
+          if (clockHour) {
+            // 时针走得慢一些，相当于现实中的1小时对应30秒
+            const hourDegrees = degrees / 12; 
+            clockHour.style.transform = `translateX(-50%) rotate(${hourDegrees}deg)`;
+            clockHour.style.background = color;
+          }
+          // 更新中心点颜色
+          const clockCenter = document.querySelector('.clock-center');
+          if (clockCenter) {
+            clockCenter.style.background = color;
+          }
+          
+          // 计算当前和下一个验证码
+          const currentCounter = Math.floor(epoch / 30);
+          const nextCounter = currentCounter + 1;
+          
+          const currentCode = await calculateTOTP(key, currentCounter);
+          const nextCode = await calculateTOTP(key, nextCounter);
+          
+          totpDisplay.textContent = currentCode;
+          totpDisplay.classList.remove('waiting');
+          
+          // 剩余时间 <= 10秒时验证码变红
+          if (remainingSeconds <= 10) {
+            totpDisplay.classList.add('warning');
+          } else {
+            totpDisplay.classList.remove('warning');
+          }
+          
+          if (nextTotpDisplay) {
+            nextTotpDisplay.textContent = `下一个验证码: ${nextCode}`;
+          }
+          
+          if (!copyCurrentBtn.classList.contains('copied')) copyCurrentBtn.disabled = false;
+          if (!copyBothBtn.classList.contains('copied')) copyBothBtn.disabled = false;
         } else {
           if(countNum) countNum.textContent = currentConfig.counter;
           nextBtn.style.display = 'block';
+          const data = new Uint8Array(8);
+          let cv = currentConfig.counter;
+          for (let i = 7; i >= 0; i--) { data[i] = cv & 0xff; cv >>= 8; }
+          const cryptoKey = await crypto.subtle.importKey('raw', key, { name: 'HMAC', hash: 'SHA-1' }, false, ['sign']);
+          const hmac = new Uint8Array(await crypto.subtle.sign('HMAC', cryptoKey, data));
+          const offset = hmac[hmac.length - 1] & 0xf;
+          const code = ((hmac[offset] & 0x7f) << 24 | (hmac[offset+1] & 0xff) << 16 | (hmac[offset+2] & 0xff) << 8 | (hmac[offset+3] & 0xff)) % 1000000;
+          totpDisplay.textContent = code.toString().padStart(6, '0');
+          totpDisplay.classList.remove('waiting');
+          if (nextTotpDisplay) nextTotpDisplay.textContent = '';
+          if (!copyCurrentBtn.classList.contains('copied')) copyCurrentBtn.disabled = false;
+          if (!copyBothBtn.classList.contains('copied')) copyBothBtn.disabled = false;
         }
-        const data = new Uint8Array(8);
-        let cv = (currentConfig.type === 'hotp') ? currentConfig.counter : Math.floor(epoch / 30);
-        for (let i = 7; i >= 0; i--) { data[i] = cv & 0xff; cv >>= 8; }
-        const cryptoKey = await crypto.subtle.importKey('raw', key, { name: 'HMAC', hash: 'SHA-1' }, false, ['sign']);
-        const hmac = new Uint8Array(await crypto.subtle.sign('HMAC', cryptoKey, data));
-        const offset = hmac[hmac.length - 1] & 0xf;
-        const code = ((hmac[offset] & 0x7f) << 24 | (hmac[offset+1] & 0xff) << 16 | (hmac[offset+2] & 0xff) << 8 | (hmac[offset+3] & 0xff)) % 1000000;
-        totpDisplay.textContent = code.toString().padStart(6, '0');
-        totpDisplay.classList.remove('waiting');
-        if (!copyBtn.classList.contains('copied')) copyBtn.disabled = false;
       } catch (e) { resetUI(); }
     }
 
@@ -483,15 +602,66 @@
     });
 
     function showError() { errorToast.classList.add('show'); setTimeout(() => errorToast.classList.remove('show'), 3000); }
-    function resetUI() { totpDisplay.textContent = "等待输入"; totpDisplay.classList.add('waiting'); copyBtn.disabled = true; const area = document.getElementById('countdown-area'); if(area) area.style.display = 'none'; updateHeadingAndTitle(); }
+    function resetUI() { 
+      totpDisplay.textContent = "等待输入"; 
+      totpDisplay.classList.add('waiting'); 
+      if(nextTotpDisplay) nextTotpDisplay.textContent = ''; 
+      copyCurrentBtn.disabled = true; 
+      copyBothBtn.disabled = true;
+      const area = document.getElementById('countdown-area'); 
+      if(area) area.style.display = 'none'; 
+      // 重置时钟指针
+      if (clockMinute) {
+        clockMinute.style.transform = `translateX(-50%) rotate(0deg)`;
+        clockMinute.style.background = 'var(--primary-color)';
+      }
+      if (clockHour) {
+        clockHour.style.transform = `translateX(-50%) rotate(0deg)`;
+        clockHour.style.background = 'var(--primary-color)';
+      }
+      const clockCenter = document.querySelector('.clock-center');
+      if (clockCenter) {
+        clockCenter.style.background = 'var(--primary-color)';
+      }
+      updateHeadingAndTitle(); 
+    }
     function clearImage() { previewBox.style.display = 'none'; imgThumbnail.src = ""; }
     function saveAndRender() { localStorage.setItem('otp_secret', currentConfig.secret); updateUrlHash(); updateHeadingAndTitle(); calculate(); }
 
-    async function copyTOTP() {
-      if (copyBtn.classList.contains('copied')) return;
-      await navigator.clipboard.writeText(totpDisplay.textContent);
-      copyBtn.textContent = '✅ 已复制'; copyBtn.classList.add('copied'); copyBtn.disabled = true;
-      setTimeout(() => { copyBtn.textContent = '复制验证码'; copyBtn.classList.remove('copied'); if (!totpDisplay.classList.contains('waiting')) copyBtn.disabled = false; }, 2000);
+    async function copyCurrentOnly() {
+      if (copyCurrentBtn.classList.contains('copied')) return;
+      const currentCode = totpDisplay.textContent;
+      await navigator.clipboard.writeText(currentCode);
+      copyCurrentBtn.textContent = '✅ 已复制'; 
+      copyCurrentBtn.classList.add('copied'); 
+      copyCurrentBtn.disabled = true;
+      setTimeout(() => { 
+        copyCurrentBtn.textContent = '仅复制当前验证码'; 
+        copyCurrentBtn.classList.remove('copied'); 
+        if (!totpDisplay.classList.contains('waiting')) copyCurrentBtn.disabled = false; 
+      }, 2000);
+    }
+
+    async function copyBoth() {
+      if (copyBothBtn.classList.contains('copied')) return;
+      const currentCode = totpDisplay.textContent;
+      let nextCode = '';
+      if (nextTotpDisplay && nextTotpDisplay.textContent) {
+        const match = nextTotpDisplay.textContent.match(/下一个验证码:\s*(\d+)/);
+        if (match) {
+          nextCode = match[1];
+        }
+      }
+      const textToCopy = nextCode ? `当前验证码: ${currentCode}\n下一个验证码: ${nextCode}` : currentCode;
+      await navigator.clipboard.writeText(textToCopy);
+      copyBothBtn.textContent = '✅ 已复制'; 
+      copyBothBtn.classList.add('copied'); 
+      copyBothBtn.disabled = true;
+      setTimeout(() => { 
+        copyBothBtn.textContent = '复制当前及下一验证码'; 
+        copyBothBtn.classList.remove('copied'); 
+        if (!totpDisplay.classList.contains('waiting')) copyBothBtn.disabled = false; 
+      }, 2000);
     }
 
     function incrementHOTP() { currentConfig.counter++; saveAndRender(); }
@@ -527,7 +697,6 @@
       }
     }
 
-    // 提高定时器频率到 200ms，配合 calculate 中的 lastEpoch 判断，实现精确的整秒跳动
     setInterval(calculate, 200);
     init();
   </script>
