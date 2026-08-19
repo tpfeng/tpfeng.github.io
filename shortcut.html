@@ -676,13 +676,29 @@
         .modal-desc {
             font-size: 0.88rem;
             color: var(--text-secondary);
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.2rem;
             line-height: 1.5;
             transition: color var(--transition);
         }
         .modal-desc strong {
             color: var(--primary);
             font-weight: 600;
+        }
+        /* 倒计时提示 */
+        .modal-countdown {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 1.2rem;
+            padding: 0.4rem 0.8rem;
+            background: var(--hover-bg);
+            border-radius: 20px;
+            display: inline-block;
+            transition: all var(--transition);
+        }
+        .modal-countdown .cd-number {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 1.1rem;
         }
         .modal-actions {
             display: flex;
@@ -733,7 +749,7 @@
             transition: transform 0.08s ease;
         }
 
-        /* ========== 倒计时悬浮卡片 ========== */
+        /* ========== 底部倒计时卡片（锚点专用） ========== */
         #countdownCard {
             position: fixed;
             bottom: 2rem;
@@ -847,7 +863,7 @@
     <!-- ==================== 底部提示 ==================== -->
     <div class="footer-note">
         <span class="note-icon">💡</span>
-        通过锚点链接访问时，页面会自动倒计时并尝试打开设置。点击设置项则弹出确认窗口。
+        通过锚点链接访问时，页面会自动倒计时并尝试打开设置。点击设置项会弹出确认窗口，确认窗口内也有5秒自动允许倒计时。
     </div>
 
     <!-- ==================== Toast 容器 ==================== -->
@@ -861,6 +877,10 @@
             <div class="modal-desc">
                 即将启动 <strong id="modalCommandName">设置</strong>，请在浏览器弹出的确认框中选择“允许”或“打开”。
             </div>
+            <!-- 弹窗内部倒计时 -->
+            <div class="modal-countdown" id="modalCountdown">
+                <span class="cd-number" id="modalCdNumber">5</span> 秒后自动打开
+            </div>
             <div class="modal-actions">
                 <button class="modal-btn" id="modalCancel">取消</button>
                 <button class="modal-btn primary" id="modalConfirm">允许打开</button>
@@ -868,7 +888,7 @@
         </div>
     </div>
 
-    <!-- ==================== 倒计时悬浮卡片 ==================== -->
+    <!-- ==================== 底部倒计时卡片（锚点专用） ==================== -->
     <div id="countdownCard">
         <span class="cd-number" id="cdNumber">5</span>
         <span id="cdLabel">秒后自动打开「网络状态」</span>
@@ -1020,6 +1040,8 @@
             const modalCommandName = document.getElementById('modalCommandName');
             const modalConfirm = document.getElementById('modalConfirm');
             const modalCancel = document.getElementById('modalCancel');
+            const modalCountdown = document.getElementById('modalCountdown');
+            const modalCdNumber = document.getElementById('modalCdNumber');
             const countdownCard = document.getElementById('countdownCard');
             const cdNumber = document.getElementById('cdNumber');
             const cdLabel = document.getElementById('cdLabel');
@@ -1029,7 +1051,8 @@
             let collapsedCategories = new Set();
             let pendingCommand = null;
             let pendingItemName = null;
-            let countdownTimer = null;
+            let countdownTimer = null;      // 锚点倒计时
+            let modalCountdownTimer = null; // 弹窗倒计时
 
             // ==================== 主题管理 ====================
             function getStoredTheme() { return localStorage.getItem('ms-settings-theme'); }
@@ -1080,7 +1103,7 @@
                 }, 2500);
             }
 
-            // ==================== 打开设置（弹窗确认） ====================
+            // ==================== 打开设置（弹窗确认 + 弹窗倒计时） ====================
             function openSettingsWithConfirm(command, itemName) {
                 updateHash(itemName);
                 recordRecentUse(command);
@@ -1088,40 +1111,78 @@
                 pendingItemName = itemName;
                 modalCommandName.textContent = itemName;
                 confirmModal.classList.add('show');
+                // 重置弹窗倒计时
+                startModalCountdown(command, itemName);
             }
 
-            // ==================== 直接尝试打开（用于倒计时结束） ====================
-            function tryOpenSettings(command, itemName) {
-                recordRecentUse(command);
-                updateHash(itemName);
-                try {
-                    window.location.href = command;
-                    showToast(`正在打开「${itemName}」...`, '🚀');
-                } catch (e) {
-                    try {
-                        const iframe = document.createElement('iframe');
-                        iframe.style.display = 'none';
-                        iframe.src = command;
-                        document.body.appendChild(iframe);
-                        setTimeout(() => document.body.removeChild(iframe), 2000);
-                    } catch (e2) {
-                        showToast('无法自动打开，请点击高亮设置项', '⚠️');
+            // ==================== 弹窗内部倒计时 ====================
+            function startModalCountdown(command, itemName) {
+                if (modalCountdownTimer) clearInterval(modalCountdownTimer);
+                let seconds = 5;
+                modalCdNumber.textContent = seconds;
+                // 确保倒计时可见
+                modalCountdown.style.display = 'inline-block';
+                modalCountdownTimer = setInterval(() => {
+                    seconds--;
+                    if (seconds <= 0) {
+                        clearInterval(modalCountdownTimer);
+                        modalCountdownTimer = null;
+                        // 自动允许：关闭弹窗并打开设置
+                        confirmModal.classList.remove('show');
+                        try {
+                            window.location.href = command;
+                            showToast(`正在打开「${itemName}」...`, '🚀');
+                        } catch (e) {
+                            showToast('无法自动打开，请手动运行', '⚠️');
+                        }
+                        pendingCommand = null;
+                        pendingItemName = null;
+                    } else {
+                        modalCdNumber.textContent = seconds;
                     }
+                }, 1000);
+            }
+
+            function clearModalCountdown() {
+                if (modalCountdownTimer) {
+                    clearInterval(modalCountdownTimer);
+                    modalCountdownTimer = null;
                 }
             }
 
-            // ==================== 更新 URL hash ====================
-            function updateHash(name) {
-                try {
-                    history.replaceState(null, '', '#' + encodeURIComponent(name));
-                } catch (e) {
-                    window.location.hash = name;
+            // ==================== 模态框事件 ====================
+            modalConfirm.addEventListener('click', () => {
+                clearModalCountdown();
+                confirmModal.classList.remove('show');
+                if (pendingCommand) {
+                    try {
+                        window.location.href = pendingCommand;
+                        showToast('正在打开系统设置...', '🚀');
+                    } catch (e) {
+                        showToast('无法打开设置，请手动运行', '⚠️');
+                    }
+                    pendingCommand = null;
+                    pendingItemName = null;
                 }
-            }
+            });
+            modalCancel.addEventListener('click', () => {
+                clearModalCountdown();
+                confirmModal.classList.remove('show');
+                pendingCommand = null;
+                pendingItemName = null;
+                showToast('已取消操作', '↩️');
+            });
+            confirmModal.addEventListener('click', (e) => {
+                if (e.target === confirmModal) {
+                    clearModalCountdown();
+                    confirmModal.classList.remove('show');
+                    pendingCommand = null;
+                    pendingItemName = null;
+                }
+            });
 
-            // ==================== 倒计时逻辑 ====================
+            // ==================== 锚点倒计时逻辑（页面加载） ====================
             function startCountdown(command, itemName) {
-                // 清除旧倒计时
                 if (countdownTimer) clearInterval(countdownTimer);
                 let seconds = 5;
                 cdNumber.textContent = seconds;
@@ -1151,36 +1212,36 @@
                 countdownCard.classList.remove('show');
                 showToast('已取消自动打开', '↩️');
             }
-
             cdCancel.addEventListener('click', cancelCountdown);
 
-            // ==================== 模态框事件 ====================
-            modalConfirm.addEventListener('click', () => {
-                confirmModal.classList.remove('show');
-                if (pendingCommand) {
+            // ==================== 直接尝试打开（用于锚点倒计时结束） ====================
+            function tryOpenSettings(command, itemName) {
+                recordRecentUse(command);
+                updateHash(itemName);
+                try {
+                    window.location.href = command;
+                    showToast(`正在打开「${itemName}」...`, '🚀');
+                } catch (e) {
                     try {
-                        window.location.href = pendingCommand;
-                        showToast('正在打开系统设置...', '🚀');
-                    } catch (e) {
-                        showToast('无法打开设置，请手动运行', '⚠️');
+                        const iframe = document.createElement('iframe');
+                        iframe.style.display = 'none';
+                        iframe.src = command;
+                        document.body.appendChild(iframe);
+                        setTimeout(() => document.body.removeChild(iframe), 2000);
+                    } catch (e2) {
+                        showToast('无法自动打开，请点击高亮设置项', '⚠️');
                     }
-                    pendingCommand = null;
-                    pendingItemName = null;
                 }
-            });
-            modalCancel.addEventListener('click', () => {
-                confirmModal.classList.remove('show');
-                pendingCommand = null;
-                pendingItemName = null;
-                showToast('已取消操作', '↩️');
-            });
-            confirmModal.addEventListener('click', (e) => {
-                if (e.target === confirmModal) {
-                    confirmModal.classList.remove('show');
-                    pendingCommand = null;
-                    pendingItemName = null;
+            }
+
+            // ==================== 更新 URL hash ====================
+            function updateHash(name) {
+                try {
+                    history.replaceState(null, '', '#' + encodeURIComponent(name));
+                } catch (e) {
+                    window.location.hash = name;
                 }
-            });
+            }
 
             // ==================== 页面加载时处理 hash ====================
             function handleHashOnLoad() {
@@ -1198,9 +1259,7 @@
                     item = settingsData.find(s => s.command === decoded);
                 }
                 if (item) {
-                    // 高亮定位
                     highlightAndScroll(item.name);
-                    // 启动倒计时自动打开
                     startCountdown(item.command, item.name);
                 }
             }
@@ -1484,7 +1543,7 @@
             console.log('   💡 支持中文锚点，例如 #网络状态 可高亮并倒计时自动打开');
             console.log('   🔍 按 Ctrl+K 快速聚焦搜索框');
             console.log('   🌙 点击右上角按钮切换暗色模式');
-            console.log('   🔐 点击设置项会弹出确认窗口');
+            console.log('   🔐 点击设置项会弹出确认窗口，窗口内包含5秒自动允许倒计时');
             console.log('   📊 共收录 ' + settingsData.length + ' 条设置命令');
         })();
     </script>
